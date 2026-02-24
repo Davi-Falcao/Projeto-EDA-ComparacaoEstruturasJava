@@ -1,4 +1,5 @@
 package estruturas;
+import estruturas.ArrayList.ArrayList;
 
 public class ArrayListAsserts {
 

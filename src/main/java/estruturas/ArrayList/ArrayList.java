@@ -1,4 +1,4 @@
-package estruturas;
+package estruturas.ArrayList;
 
 public class ArrayList {
 
