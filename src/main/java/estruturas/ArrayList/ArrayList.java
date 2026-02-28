@@ -1,9 +1,9 @@
-package estruturas.ArrayList;
+package estruturas.arraylist;
 
 public class ArrayList {
 
     private int[] lista;
-    public static final int CAPACIDADE_DEFAULT = 20;
+    public static final int CAPACIDADE_DEFAULT = 1000;
     private int tamanho;
 
     public ArrayList() {
@@ -54,8 +54,21 @@ public class ArrayList {
     }
 
     private void assegureCapacidade(int capacidadePretendida) {
-        if (capacidadePretendida > this.lista.length)
-            resize(Math.max(this.lista.length * 2, capacidadePretendida));
+        if (capacidadePretendida <= this.lista.length) return;
+
+        int novaCapacidade = Math.max(1, this.lista.length);
+        while (novaCapacidade < capacidadePretendida) {
+            int proximaCapacidade = novaCapacidade * 2;
+
+            if (proximaCapacidade <= 0) {
+                novaCapacidade = capacidadePretendida;
+                break;
+            }
+
+            novaCapacidade = proximaCapacidade;
+        }
+
+        resize(novaCapacidade);
     }
 
     private void resize(int novaCapacidade) {
@@ -124,3 +137,4 @@ public class ArrayList {
         return sb.toString();
     }
 }
+

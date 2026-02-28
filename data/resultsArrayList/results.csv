@@ -1,1 +1,0 @@
-trace_file,scenario,n_ops,warmup_runs,time_total_ns,ops_per_sec,heap_used_before_bytes,heap_used_after_bytes,heap_peak_bytes,invalid_ops,count_ADD_END,time_ADD_END_ns,count_ADD_AT,time_ADD_AT_ns,count_GET,time_GET_ns,count_REMOVE_AT,time_REMOVE_AT_ns,count_INDEX_OF,time_INDEX_OF_ns
