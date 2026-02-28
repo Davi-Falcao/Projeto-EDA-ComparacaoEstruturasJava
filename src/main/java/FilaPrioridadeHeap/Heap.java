@@ -1,4 +1,4 @@
-package heap;
+package FilaPrioridadeHeap;
 import java.util.Arrays;
 
 public class Heap {
@@ -6,6 +6,10 @@ public class Heap {
     private int[] heap;
     private int tail;
 
+    public Heap(){
+        this.heap = new int[20];
+        this.tail = -1;
+    }
     public Heap(int capacidade) {
         this.heap = new int[capacidade];
         this.tail = -1;

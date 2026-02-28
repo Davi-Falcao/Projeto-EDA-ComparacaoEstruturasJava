@@ -4,7 +4,7 @@
 # CONFIGURAÇÃO
 # ===============================
 
-OPERACOES=1000000    # total de operações
+OPERACOES=1000    # total de operações
 #| N (operações) |    Warmup          |
 #| ------------- | ------------------ |
 #| 1 000         | 100                |
@@ -12,7 +12,7 @@ OPERACOES=1000000    # total de operações
 #| 100 000       | 1 000              |
 #| 1 000 000     | 3 000              |
 
-WARMUP=3000           # inserções iniciais
+WARMUP=100           # inserções iniciais
 VALOR_MAX=10000      # range dos valores
 P_INSERT=50        # % inserção
 P_REMOVE=50           # % remoção
@@ -24,8 +24,7 @@ P_SEARCH=0            # % busca
 
 for ((i=0; i<$WARMUP; i++))
 do
-    V=$((RANDOM % VALOR_MAX))
-    printf "I %d " "$V"
+    printf "I %d " "$i"
 done
 
 # ===============================
@@ -45,16 +44,18 @@ for ((i=0; i<N_R; i++)); do echo "R"; done >> "$tmp"
 for ((i=0; i<N_S; i++)); do echo "S"; done >> "$tmp"
 
 # embaralha (GNU coreutils) 
+i=$WARMUP
 shuf "$tmp" | while read -r op; do 
 
     if [ "$op" = "I" ]; then
-        printf "I %d " "$((RANDOM % VALOR_MAX))"
+        printf "I %d " "$i"
+        ((i++))
     
     elif [ "$op" = "R" ]; then
         printf "R "
     
     else
-        printf "S %d " "$((RANDOM % VALOR_MAX))"
+        printf "S %d " "$((RANDOM % $i))"
     fi    
  done
 
