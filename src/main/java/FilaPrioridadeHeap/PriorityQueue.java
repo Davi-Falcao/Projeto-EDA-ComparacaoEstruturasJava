@@ -48,7 +48,7 @@ public class PriorityQueue {
      * Verifica se a fila está vazia.
      * * @return true se a fila não contiver elementos, false caso contrário.
      */
-    private boolean isEmpyt(){
+    public boolean isEmpty(){
         return this.tail == -1;
     }
 
@@ -91,7 +91,7 @@ public class PriorityQueue {
      * @throws RuntimeException Se a fila estiver vazia.
      */
     public int remove(){
-        if(isEmpyt()) throw new RuntimeException();
+        if(isEmpty()) throw new RuntimeException();
 
         int out = this.fila[this.tail];
 
@@ -119,7 +119,10 @@ public class PriorityQueue {
         this.fila[i] = this.fila[j];
         this.fila[j] = aux;
     }
-
+    
+    public int size(){
+        return this.size;
+    }
 
     private void mergeSort(int[] v, int start, int end){
         if(start >= end) return;
