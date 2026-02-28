@@ -4,7 +4,7 @@
 # CONFIGURAÇÃO
 # ===============================
 
-OPERACOES=1000    # total de operações
+OPERACOES=1000000    # total de operações
 #| N (operações) |    Warmup          |
 #| ------------- | ------------------ |
 #| 1 000         | 100                |
@@ -12,10 +12,9 @@ OPERACOES=1000    # total de operações
 #| 100 000       | 1 000              |
 #| 1 000 000     | 3 000              |
 
-WARMUP=100           # inserções iniciais
-VALOR_MAX=10000      # range dos valores
-P_INSERT=50        # % inserção
-P_REMOVE=50           # % remoção
+WARMUP=3000           # inserções iniciais
+P_INSERT=75        # % inserção
+P_REMOVE=25           # % remoção
 P_SEARCH=0            # % busca
 
 # ===============================

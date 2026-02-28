@@ -10,8 +10,6 @@ public class Main {
             BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
             String line = "";
 
-            System.out.println("test time  memory size");
-
             while ((line = reader.readLine()) != null) {
 
                 String[] tokens = line.split(" ");
@@ -21,21 +19,35 @@ public class Main {
                 // limpar memoria, para tirar rúidos
                 rt.gc();
 
-                long memoryBefore = rt.totalMemory() - rt.freeMemory();
-                long start = System.nanoTime();
+                long[] obsTime = new long[30];
+                long[] obsMemory = new long[30];
+
+                for(int i = 0; i < 30; i++){
+
+                    long memoryBefore = rt.totalMemory() - rt.freeMemory();
+                    long start = System.nanoTime();
                  
-                // test a ser medido
-                test1(tokens);
+                    // test a ser medido
+                    test1(tokens);
                 
-                long end = System.nanoTime();
-                long memoryAfter = rt.totalMemory() - rt.freeMemory();
+                    long end = System.nanoTime();
+                    long memoryAfter = rt.totalMemory() - rt.freeMemory();
 
-                long time = end - start;
-                long memory = memoryAfter - memoryBefore;
+                    long time = end - start;
+                    long memory = memoryAfter - memoryBefore;
+
+                    obsTime[i] = time;
+                    obsMemory[i] = memory;
+
+
+                }
+
+                Arrays.sort(obsTime);
+                Arrays.sort(obsMemory);
 
 
                 
-                System.out.println("test1 " + (time) + " " + (memory) + " " + tokens.length);
+                System.out.println("random 10^3 100%Insertion 0%Remove " + (obsTime[14]) + " " + (obsMemory[14]) + " " + tokens.length);
             }
 
         } catch (IOException ioe) {}

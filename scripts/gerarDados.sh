@@ -13,7 +13,7 @@ OPERACOES=1000000    # total de operações
 #| 1 000 000     | 3 000              |
 
 WARMUP=3000           # inserções iniciais
-VALOR_MAX=10000      # range dos valores
+VALOR_MAX=1000      # range dos valores
 P_INSERT=50        # % inserção
 P_REMOVE=50           # % remoção
 P_SEARCH=0            # % busca

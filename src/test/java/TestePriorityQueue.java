@@ -1,3 +1,4 @@
+package test.java;
 import FilaPrioridadeHeap.PriorityQueue;
 
 public class TestePriorityQueue {

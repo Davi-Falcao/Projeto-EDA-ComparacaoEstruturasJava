@@ -4,59 +4,57 @@
 # CONFIGURAÇÃO
 # ===============================
 
-OPERACOES=1000    # total de operações
-#| N (operações) |    Warmup          |
-#| ------------- | ------------------ |
-#| 1 000         | 100                |
-#| 10 000        | 500                |
-#| 100 000       | 1 000              |
-#| 1 000 000     | 3 000              |
-
-WARMUP=100           # inserções iniciais
-VALOR_MAX=10000      # range dos valores
-P_INSERT=50        # % inserção
-P_REMOVE=50           # % remoção
-P_SEARCH=0            # % busca
+OPERACOES=1000000    # total de operações
+WARMUP=3000        # inserções iniciais
+P_INSERT=75       # % inserção
+P_REMOVE=25       # % remoção
+P_SEARCH=0        # % busca
 
 # ===============================
 # WARMUP (garante que não remove vazio)
 # ===============================
 
-for ((i=0; i<$WARMUP; i++))
+# Gera valores em ordem crescente para o warmup
+n=$((OPERACOES+WARMUP))
+
+for ((i=0; i<WARMUP; i++))
 do
-    printf "I %d " "$i"
+    printf "I %d " "$n"
+    ((n--))
 done
 
 # ===============================
-# GERAÇÃO PRINCIPAL
+# GERAÇÃO PRINCIPAL (decrescente)
 # ===============================
 
 tmp="$(mktemp)"
 trap 'rm -f "$tmp"' EXIT
 
+# Calcula a quantidade exata de inserções, remoções e buscas
 N_I=$(( OPERACOES * P_INSERT / 100 ))
 N_R=$(( OPERACOES * P_REMOVE / 100 ))
 N_S=$(( OPERACOES * P_SEARCH / 100 ))
 
-# monta exatamente N_I, N_R, N_S linhas 
+# Monta as operações em quantidade exata
 for ((i=0; i<N_I; i++)); do echo "I"; done >> "$tmp" 
 for ((i=0; i<N_R; i++)); do echo "R"; done >> "$tmp" 
 for ((i=0; i<N_S; i++)); do echo "S"; done >> "$tmp"
 
-# embaralha (GNU coreutils) 
-i=$WARMUP
-shuf "$tmp" | while read -r op; do 
+# Inicializa o valor máximo para inserção, que vai ser decrementado  # Start com o maior valor
 
+# Embaralha as operações e processa cada uma delas
+shuf "$tmp" | while read -r op; do 
     if [ "$op" = "I" ]; then
-        printf "I %d " "$i"
-        ((i++))
+        # Gera inserções com valores decrescentes
+        printf "I %d " "$n"
+        ((n--))  # Decrementa o valor para a próxima inserção
     
     elif [ "$op" = "R" ]; then
+        # Gera remoções, sem valor específico
         printf "R "
     
     else
-        printf "S %d " "$((RANDOM % $i))"
+        # Gera buscas com valores aleatórios dentro do intervalo de inserções
+        printf "S %d " "$((RANDOM % (i + 1)))"
     fi    
- done
-
-
+done

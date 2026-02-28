@@ -91,7 +91,7 @@ public class PriorityQueue {
      * @throws RuntimeException Se a fila estiver vazia.
      */
     public int remove(){
-        if(isEmpty()) throw new RuntimeException();
+        if(isEmpty()) throw new RuntimeException("Empty");
 
         int out = this.fila[this.tail];
 
