@@ -47,7 +47,7 @@ public class Main {
 
 
                 
-                System.out.println("random 10^3 100%Insertion 0%Remove " + (obsTime[14]) + " " + (obsMemory[14]) + " " + tokens.length);
+                System.out.println("heap50%Insertion50%Remove " + tokens.length + " " + (obsTime[14]));
             }
 
         } catch (IOException ioe) {}
