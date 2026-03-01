@@ -47,7 +47,7 @@ public class Main {
 
 
                 
-                System.out.println("heap50%Insertion50%Remove " + tokens.length + " " + (obsTime[14]));
+                System.out.println("PriorityQueue crescente 10^6 75%Insertion 25%Remove " + (obsTime[14]) + " " + (obsMemory[14]));
             }
 
         } catch (IOException ioe) {}
@@ -55,7 +55,7 @@ public class Main {
     }
 
     private static void test1(String[] v){
-        Heap hp = new Heap();
+        PriorityQueue hp = new PriorityQueue();
 
         for(int i = 0; i < v.length; i++){
             if(v[i].equals("I")){
