@@ -20,29 +20,29 @@ A classe `App.java` funciona como um menu para escolher qual benchmark executar.
 
 #### 1. Exibir Menu de Opções
 ```bash
-mvn exec:java -Papp
+mvn exec:java
 ```
 
 #### 2. Executar um Benchmark Específico
 
 **Benchmark de Inserção em ArrayList (sem argumentos):**
 ```bash
-mvn exec:java -Papp '-Dexec.args=arraylist-insertion'
+mvn exec:java '-Dexec.args=arraylist-insertion'
 ```
 
 **Benchmark com JSON (PowerShell):**
 ```bash
-mvn exec:java -Papp '-Dexec.args=arraylist-insertion,{"OrdemAdicao":true}'
+mvn exec:java '-Dexec.args=arraylist-insertion,{"OrdemAdicao":true}'
 ```
 
 **Benchmark com JSON (bash):**
 ```bash
-mvn exec:java -Papp -Dexec.args='arraylist-insertion,{"OrdemAdicao":true}'
+mvn exec:java -Dexec.args='arraylist-insertion,{"OrdemAdicao":true}'
 ```
 
 ### Executar Diretamente o Benchmark (Alternativa)
 
-Se preferir usar o profile `bench` diretamente (sem passar pela App):
+Se preferir usar o profile `bench` diretamente (sem passar pela App, de forma expl�cita):
 
 ```bash
 mvn exec:java -Pbench
@@ -57,10 +57,10 @@ mvn exec:java -Pbench '-Dexec.args={"OrdemAdicao":true}'
 
 ```bash
 # Exibir menu
-mvn clean compile exec:java -Papp
+mvn clean compile exec:java
 
 # Executar benchmark específico
-mvn clean compile exec:java -Papp '-Dexec.args=arraylist-insertion'
+mvn clean compile exec:java '-Dexec.args=arraylist-insertion'
 ```
 
 ### Rotas Úteis
@@ -71,10 +71,10 @@ mvn clean compile exec:java -Papp '-Dexec.args=arraylist-insertion'
 | `mvn compile` | Compila o código |
 | `mvn test` | Executa testes |
 | `mvn package` | Gera JAR do projeto |
-| `mvn exec:java -Papp` | Exibe menu de benchmarks |
-| `mvn exec:java -Papp '-Dexec.args=arraylist-insertion'` | Executa Benchmark ArrayList |
-| `mvn exec:java -Papp '-Dexec.args=arraylist-insertion,{"OrdemAdicao":true}'` | Benchmark com JSON |
-| `mvn exec:java -Pbench` | Executa benchmark padrão |
+| `mvn exec:java` | Exibe menu de benchmarks |
+| `mvn exec:java '-Dexec.args=arraylist-insertion'` | Executa Benchmark ArrayList |
+| `mvn exec:java '-Dexec.args=arraylist-insertion,{"OrdemAdicao":true}'` | Benchmark com JSON |
+| `mvn exec:java -Pbench` | Executa benchmark diretamente |
  
 ### Estrutura do Projeto
 
@@ -109,3 +109,5 @@ Exemplo:
 ```json
 {"OrdemAdicao":true}
 ```
+
+

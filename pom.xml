@@ -81,17 +81,17 @@
         <!-- Profile para executar a classe App.java -->
         <profile>
             <id>app</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
             <properties>
                 <exec.mainClass>dev.ProjetoEDA.App</exec.mainClass>
             </properties>
         </profile>
 
-        <!-- Profile para executar BenchArrayListInsertion.java (padrão) -->
+        <!-- Profile para executar BenchArrayListInsertion.java -->
         <profile>
             <id>bench</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
             <properties>
                 <exec.mainClass>dev.ProjetoEDA.bench.BenchArrayListInsertion</exec.mainClass>
             </properties>

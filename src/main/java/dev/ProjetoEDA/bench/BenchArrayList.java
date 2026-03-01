@@ -29,23 +29,17 @@ public class BenchArrayList {
      */
     public static void main(String[] args) throws IOException {
         boolean ordemAdicao = false;
+        boolean ordemDeBusca = false;
+        JSONObject config = extrairConfigOpcional(args);
 
-        // Lê a configuração do arquivo JSON, caso fornecido
-        if (args.length > 0) {
-            try {
-                String jsonConfig = args[0];
-                JSONObject config = new JSONObject(jsonConfig);
-                ordemAdicao = config.getBoolean("OrdemAdicao");
-            } catch (Exception e) {
-                System.err.println("Erro ao processar o JSON fornecido. Usando valor padrão para OrdemAdicao.");
-            }
-        } 
+        if (config != null) {
+            ordemAdicao = config.optBoolean("OrdemAdicao", false);
+            ordemDeBusca = config.optBoolean("OrdemBusca", false);
+        }
 
-        // Caminhos dos arquivos
         String filePath = "data/entradas/ArrayList/OrdemDeAdicao.csv";  
         String resultFilePath = "data/results/ArrayList/resultOrdemDeAdicao.csv"; 
 
-        // Cria o BufferedWriter para gravar os resultados no arquivo
         BufferedWriter writer = new BufferedWriter(new FileWriter(resultFilePath, true));
 
         // Verifica se o arquivo está vazio para adicionar o cabeçalho
@@ -53,11 +47,9 @@ public class BenchArrayList {
             writer.write("Operacao,TamanhoEntrada,TempoExecucao(ns),MemoriaUso(bytes)\n");
         }
 
-        // Lê o arquivo de entrada com as operações
         BufferedReader reader = new BufferedReader(new FileReader(filePath));
         String line;
 
-        // Cria a estrutura ArrayList personalizada com tamanho inicial
         ArrayList lista = new ArrayList(10000);
 
         // Processa cada linha do arquivo de entrada
@@ -75,24 +67,23 @@ public class BenchArrayList {
                 long memoriaAntes = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
                 long tempoAntes = System.nanoTime();
 
-                // Executa a operação correspondente
                 switch (operacao) {
                     case "I": 
                         int indexInsert = Integer.parseInt(indice);
                         int valueInsert = Integer.parseInt(valor);
                         if (ordemAdicao) { 
-                            lista.add(valueInsert);  // Adiciona no final da lista
+                            lista.add(valueInsert);  
                         } else {
-                            lista.add(indexInsert, valueInsert);  // Adiciona no índice específico
+                            lista.add(indexInsert, valueInsert);  
                         }
                         break;
                     case "R": 
                         int indexRemove = Integer.parseInt(indice);
-                        lista.remove(indexRemove);  // Remove do índice específico
+                        lista.remove(indexRemove); 
                         break;
                     case "S": 
                         int valueSearch = Integer.parseInt(valor);
-                        lista.indexOf(valueSearch);  // Realiza a busca
+                        lista.indexOf(valueSearch);  
                         break;
                 }
 
@@ -106,20 +97,51 @@ public class BenchArrayList {
                 memorias[i] = (int) memoriaUso;
             }
 
-            // Calcula a mediana dos tempos e memorias para essa operação
             int tempoMediana = calcularMediana(tempos);
             int memoriaMediana = calcularMediana(memorias);
 
-            // Grava o resultado no arquivo CSV
             writer.write(operacao + "," + lista.size() + "," + tempoMediana + "," + memoriaMediana + "\n");
         }
 
-        // Fecha os leitores e escritores
         reader.close();
         writer.close();
 
         System.out.println("Resultados gravados em: " + resultFilePath);
     }
+    
+    /**
+     * Extrai a configuração opcional fornecida como argumento de linha de comando no formato JSON.
+     * 
+     * Este método verifica se há argumentos passados para o programa. Se não houver nenhum argumento, 
+     * ele retorna {@code null}. Se houver mais de um argumento, ele imprime uma mensagem de erro e também retorna {@code null}.
+     * Caso o argumento seja um único JSON válido, ele tenta parseá-lo e retorná-lo como um objeto {@link JSONObject}.
+     * Se ocorrer algum erro ao processar o JSON, uma mensagem de erro é exibida e {@code null} é retornado.
+     * 
+     * @param args O array de argumentos de linha de comando, que deve conter no máximo um argumento JSON.
+     * @return O objeto {@link JSONObject} correspondente ao argumento JSON fornecido, ou {@code null} em caso de erro ou ausência de argumento válido.
+     */
+    private static JSONObject extrairConfigOpcional(String[] args) {
+        // Verifica se não há argumentos fornecidos
+        if (args.length == 0) {
+            return null;
+        }
+
+        // Verifica se mais de um argumento foi fornecido e exibe um erro
+        if (args.length > 1) {
+            System.err.println("Apenas um argumento JSON e permitido. Configuracao sera ignorada.");
+            return null;
+        }
+
+        // Tenta converter o primeiro argumento para um objeto JSON
+        try {
+            return new JSONObject(args[0]);
+        } catch (Exception e) {
+            // Em caso de erro ao processar o JSON, exibe uma mensagem de erro
+            System.err.println("Erro ao processar o JSON fornecido. Configuracao sera ignorada.");
+            return null;
+        }
+    }
+
 
     /**
      * Calcula a mediana de um array de inteiros.
@@ -144,3 +166,5 @@ public class BenchArrayList {
         }
     }
 }
+
+
