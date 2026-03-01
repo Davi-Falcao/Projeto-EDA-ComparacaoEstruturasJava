@@ -36,7 +36,7 @@ public class BenchArrayList {
         boolean ordemAdicao = config != null && config.optBoolean("OrdemAdicao", false);
         boolean ordemBusca = config != null && config.optBoolean("OrdemBusca", false);
 
-        String filePath = "data/entradas/ArrayList/OrdemDeBusca.csv";  
+        String filePath = "data/entradas/ArrayList/crescente_n100000_I50_R0_S50.csv";  
 
         BufferedWriter writer = new BufferedWriter(new FileWriter(resultFilePath, true));
         

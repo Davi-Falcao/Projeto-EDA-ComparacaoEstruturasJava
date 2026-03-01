@@ -67,7 +67,7 @@ public class App {
                     }
                 }
 
-                calcularMedianaDosArquivos(arquivosGerados, "ArrayList/resultOrdemDeBusca.csv");
+                calcularMedianaDosArquivos(arquivosGerados, "ArrayList/resultCrescente_n100000_I50_R0_S50.csv");
                 break;
 
             default:
@@ -91,7 +91,6 @@ public class App {
         File destinoFile = new File(destino);
         java.nio.file.Files.copy(origem.toPath(), destinoFile.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
 
-        // Excluir os outros arquivos temporários
         for (String arquivo : arquivos) {
             new File(arquivo).delete();
         }
