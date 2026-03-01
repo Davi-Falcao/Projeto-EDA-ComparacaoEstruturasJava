@@ -1,28 +1,28 @@
 package dev.ProjetoEDA.bench;
-import java.io.*;
-import java.util.*;
-import org.json.JSONObject;
-import dev.ProjetoEDA.estruturas.arraylist.ArrayList;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.Arrays;
 
+import org.json.JSONObject;
+
+import dev.ProjetoEDA.estruturas.arraylist.ArrayList;
 
 /**
  * Classe que realiza o benchmark de operações (inserção, remoção e busca) em uma estrutura de dados 
  * ArrayList personalizada. Para cada operação, o tempo de execução e o uso de memória são medidos
  * em 5 iterações, e os valores medianos são gravados em um arquivo CSV.
  */
-public class BenchArrayListInsertion {
+public class BenchArrayList {
 
     /**
      * Método principal que executa o benchmark das operações em um ArrayList.
      * Ele lê um arquivo CSV contendo uma sequência de operações (inserção, remoção e busca),
-     * executa cada operação no ArrayList 5 vezes para garantir a estabilidade dos resultados,
+     * executa cada operação no ArrayList 30 vezes para garantir a estabilidade dos resultados,
      * e grava os tempos de execução e uso de memória no arquivo de saída em formato CSV.
-     * 
-     * Para cada operação:
-     * - O tempo de execução é medido com precisão de nanossegundos.
-     * - O uso de memória é calculado com base na diferença entre a memória total antes e depois da operação.
-     * 
-     * O valor mediano do tempo e da memória de cada operação é calculado após 5 execuções e registrado no CSV.
      * 
      * @param args Argumentos passados pela linha de comando (que deve incluir o JSON de configuração).
      * @throws IOException Caso ocorra algum erro na leitura ou escrita de arquivos.
@@ -30,6 +30,7 @@ public class BenchArrayListInsertion {
     public static void main(String[] args) throws IOException {
         boolean ordemAdicao = false;
 
+        // Lê a configuração do arquivo JSON, caso fornecido
         if (args.length > 0) {
             try {
                 String jsonConfig = args[0];
@@ -39,18 +40,27 @@ public class BenchArrayListInsertion {
                 System.err.println("Erro ao processar o JSON fornecido. Usando valor padrão para OrdemAdicao.");
             }
         } 
-        
+
+        // Caminhos dos arquivos
         String filePath = "data/entradas/ArrayList/OrdemDeAdicao.csv";  
         String resultFilePath = "data/results/ArrayList/resultOrdemDeAdicao.csv"; 
 
+        // Cria o BufferedWriter para gravar os resultados no arquivo
         BufferedWriter writer = new BufferedWriter(new FileWriter(resultFilePath, true));
-        writer.write("Operacao,TamanhoEntrada,TempoExecucao(ns),MemoriaUso(bytes),OrdemAdicao\n");
 
+        // Verifica se o arquivo está vazio para adicionar o cabeçalho
+        if (new File(resultFilePath).length() == 0) {
+            writer.write("Operacao,TamanhoEntrada,TempoExecucao(ns),MemoriaUso(bytes)\n");
+        }
+
+        // Lê o arquivo de entrada com as operações
         BufferedReader reader = new BufferedReader(new FileReader(filePath));
         String line;
 
+        // Cria a estrutura ArrayList personalizada com tamanho inicial
         ArrayList lista = new ArrayList(10000);
 
+        // Processa cada linha do arquivo de entrada
         while ((line = reader.readLine()) != null) {
             String[] parts = line.split(",");
             String operacao = parts[0].trim();
@@ -71,18 +81,18 @@ public class BenchArrayListInsertion {
                         int indexInsert = Integer.parseInt(indice);
                         int valueInsert = Integer.parseInt(valor);
                         if (ordemAdicao) { 
-                            lista.add(valueInsert);
+                            lista.add(valueInsert);  // Adiciona no final da lista
                         } else {
-                            lista.add(indexInsert, valueInsert);
+                            lista.add(indexInsert, valueInsert);  // Adiciona no índice específico
                         }
                         break;
                     case "R": 
                         int indexRemove = Integer.parseInt(indice);
-                        lista.remove(indexRemove);
+                        lista.remove(indexRemove);  // Remove do índice específico
                         break;
                     case "S": 
                         int valueSearch = Integer.parseInt(valor);
-                        lista.indexOf(valueSearch);
+                        lista.indexOf(valueSearch);  // Realiza a busca
                         break;
                 }
 
@@ -100,10 +110,11 @@ public class BenchArrayListInsertion {
             int tempoMediana = calcularMediana(tempos);
             int memoriaMediana = calcularMediana(memorias);
 
-            // Grava o resultado no arquivo CSV, incluindo a coluna OrdemAdicao
-            writer.write(operacao + "," + lista.size() + "," + tempoMediana + "," + memoriaMediana + "," + ordemAdicao + "\n");
+            // Grava o resultado no arquivo CSV
+            writer.write(operacao + "," + lista.size() + "," + tempoMediana + "," + memoriaMediana + "\n");
         }
 
+        // Fecha os leitores e escritores
         reader.close();
         writer.close();
 

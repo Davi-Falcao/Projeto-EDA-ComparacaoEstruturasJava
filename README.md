@@ -14,55 +14,53 @@ Para compilar todos os arquivos fonte:
 mvn clean compile
 ```
 
-### Executar com Profiles
+### Executar via App (Seletor de Benchmarks)
 
-O projeto está configurado com **dois profiles**: `app` e `bench`.
+A classe `App.java` funciona como um menu para escolher qual benchmark executar. **Esta é a forma recomendada:**
 
-#### 1. Executar o Benchmark (Profile `bench` - PADRÃO)
+#### 1. Exibir Menu de Opções
+```bash
+mvn exec:java -Papp
+```
+
+#### 2. Executar um Benchmark Específico
+
+**Benchmark de Inserção em ArrayList (sem argumentos):**
+```bash
+mvn exec:java -Papp '-Dexec.args=arraylist-insertion'
+```
+
+**Benchmark com JSON (PowerShell):**
+```bash
+mvn exec:java -Papp '-Dexec.args=arraylist-insertion,{"OrdemAdicao":true}'
+```
+
+**Benchmark com JSON (bash):**
+```bash
+mvn exec:java -Papp -Dexec.args='arraylist-insertion,{"OrdemAdicao":true}'
+```
+
+### Executar Diretamente o Benchmark (Alternativa)
+
+Se preferir usar o profile `bench` diretamente (sem passar pela App):
 
 ```bash
 mvn exec:java -Pbench
 ```
 
-Ou simplesmente (já que `bench` é ativado por padrão):
-```bash
-mvn exec:java
-```
-
-#### 2. Executar a Classe App (Profile `app`)
-
-```bash
-mvn exec:java -Papp
-```
-
-### Passar Parâmetros JSON
-
-Para executar com argumentos JSON, combine o profile com `-Dexec.args`:
-
-**Benchmark com JSON (PowerShell):**
+Com JSON:
 ```bash
 mvn exec:java -Pbench '-Dexec.args={"OrdemAdicao":true}'
-```
-
-**Benchmark com JSON (bash):**
-```bash
-mvn exec:java -Pbench -Dexec.args='{"OrdemAdicao":true}'
-```
-
-**App com argumentos:**
-```bash
-mvn exec:java -Papp '-Dexec.args=valor1,valor2'
 ```
 
 ### Compilar e Executar em Uma Linha
 
 ```bash
-mvn clean compile exec:java
-```
+# Exibir menu
+mvn clean compile exec:java -Papp
 
-Ou com profile específico:
-```bash
-mvn clean compile exec:java -Pbench
+# Executar benchmark específico
+mvn clean compile exec:java -Papp '-Dexec.args=arraylist-insertion'
 ```
 
 ### Rotas Úteis
@@ -73,11 +71,11 @@ mvn clean compile exec:java -Pbench
 | `mvn compile` | Compila o código |
 | `mvn test` | Executa testes |
 | `mvn package` | Gera JAR do projeto |
-| `mvn exec:java` | Executa com profile padrão (bench) |
-| `mvn exec:java -Pbench` | Executa BenchArrayListInsertion |
-| `mvn exec:java -Papp` | Executa App |
-| `mvn exec:java -Pbench '-Dexec.args={"OrdemAdicao":true}'` | Benchmark com JSON |
-
+| `mvn exec:java -Papp` | Exibe menu de benchmarks |
+| `mvn exec:java -Papp '-Dexec.args=arraylist-insertion'` | Executa Benchmark ArrayList |
+| `mvn exec:java -Papp '-Dexec.args=arraylist-insertion,{"OrdemAdicao":true}'` | Benchmark com JSON |
+| `mvn exec:java -Pbench` | Executa benchmark padrão |
+ 
 ### Estrutura do Projeto
 
 ```
