@@ -30,14 +30,13 @@ VALUES=()
 
 # Gera as operações de inserção e busca alternadas
 for ((i=0; i<N_I; i++)); do 
-    VALUE=$((i * VALOR_MAX / N_I))  # Gera valores em ordem crescente com base no índice
+    VALUE=$i  # O valor inserido será igual ao índice
     VALUES+=($VALUE)  # Armazena o valor gerado para inserção
     # Insere o valor com o índice consecutivo
     echo "I,$i,$VALUE" >> "$CSV_FILE"              
 
-    # Faz a busca imediatamente após a inserção
-    SEARCH_VALUE=${VALUES[$((RANDOM % ${#VALUES[@]}))]}  # Busca um valor aleatório da lista de valores já inseridos
-    echo "S,$i,$SEARCH_VALUE" >> "$CSV_FILE"  # Realiza a busca para o valor aleatório
+    # Faz a busca imediatamente após a inserção do próprio valor
+    echo "S,$i,$VALUE" >> "$CSV_FILE"  # Realiza a busca para o valor inserido
 done
 
 echo "Arquivo CSV gerado: $CSV_FILE"
