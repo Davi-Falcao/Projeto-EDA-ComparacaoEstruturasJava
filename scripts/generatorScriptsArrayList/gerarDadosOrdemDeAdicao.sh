@@ -19,8 +19,6 @@ CSV_FILE="./data/entradas/ArrayList/OrdemDeAdicao.csv"
 # GERAÇÃO DO CSV
 # ===============================
 
-# Criação do arquivo CSV com cabeçalho
-echo "Operacao,Indice,Valor" > "$CSV_FILE"
 
 # ===============================
 # WARMUP (garante que não remove vazio)

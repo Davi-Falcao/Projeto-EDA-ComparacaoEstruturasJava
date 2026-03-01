@@ -29,16 +29,17 @@ public class BenchArrayList {
      */
     public static void main(String[] args) throws IOException {
         boolean ordemAdicao = false;
-        boolean ordemDeBusca = false;
+        boolean ordemBusca = false;
         JSONObject config = extrairConfigOpcional(args);
 
         if (config != null) {
+            ordemBusca = config.optBoolean("OrdemBusca", false);
+            
             ordemAdicao = config.optBoolean("OrdemAdicao", false);
-            ordemDeBusca = config.optBoolean("OrdemBusca", false);
         }
 
-        String filePath = "data/entradas/ArrayList/OrdemDeAdicao.csv";  
-        String resultFilePath = "data/results/ArrayList/resultOrdemDeAdicao.csv"; 
+        String filePath = "data/entradas/ArrayList/OrdemDeBusca.csv";  
+        String resultFilePath = "data/results/ArrayList/resultOrdemDeBusca.csv"; 
 
         BufferedWriter writer = new BufferedWriter(new FileWriter(resultFilePath, true));
 
@@ -52,6 +53,7 @@ public class BenchArrayList {
 
         ArrayList lista = new ArrayList(10000);
 
+
         // Processa cada linha do arquivo de entrada
         while ((line = reader.readLine()) != null) {
             String[] parts = line.split(",");
@@ -62,7 +64,7 @@ public class BenchArrayList {
             int[] tempos = new int[30];
             int[] memorias = new int[30];
 
-            // Executa a operação 30 vezes para calcular a mediana
+            // Executa a operação 5 vezes para calcular a mediana
             for (int i = 0; i < 30; i++) {
                 long memoriaAntes = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
                 long tempoAntes = System.nanoTime();
@@ -71,7 +73,7 @@ public class BenchArrayList {
                     case "I": 
                         int indexInsert = Integer.parseInt(indice);
                         int valueInsert = Integer.parseInt(valor);
-                        if (ordemAdicao) { 
+                        if (ordemAdicao || ordemBusca) { 
                             lista.add(valueInsert);  
                         } else {
                             lista.add(indexInsert, valueInsert);  
@@ -83,7 +85,7 @@ public class BenchArrayList {
                         break;
                     case "S": 
                         int valueSearch = Integer.parseInt(valor);
-                        lista.indexOf(valueSearch);  
+                        int index = lista.indexOf(valueSearch);  
                         break;
                 }
 
@@ -125,6 +127,7 @@ public class BenchArrayList {
         if (args.length == 0) {
             return null;
         }
+    
 
         // Verifica se mais de um argumento foi fornecido e exibe um erro
         if (args.length > 1) {
@@ -134,8 +137,10 @@ public class BenchArrayList {
 
         // Tenta converter o primeiro argumento para um objeto JSON
         try {
+
             return new JSONObject(args[0]);
         } catch (Exception e) {
+
             // Em caso de erro ao processar o JSON, exibe uma mensagem de erro
             System.err.println("Erro ao processar o JSON fornecido. Configuracao sera ignorada.");
             return null;

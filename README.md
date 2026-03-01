@@ -32,17 +32,17 @@ mvn exec:java '-Dexec.args=arraylist-insertion'
 
 **Benchmark com JSON (PowerShell):**
 ```bash
-mvn exec:java '-Dexec.args=arraylist-insertion,{"OrdemAdicao":true}'
+mvn exec:java '-Dexec.args=arraylist-insertion,{"OrdemDeBusca":true}'
 ```
 
 **Benchmark com JSON (bash):**
 ```bash
-mvn exec:java -Dexec.args='arraylist-insertion,{"OrdemAdicao":true}'
+mvn exec:java -Dexec.args='arraylist-insertion,{"OrdemDeBusca":true}'
 ```
 
 ### Executar Diretamente o Benchmark (Alternativa)
 
-Se preferir usar o profile `bench` diretamente (sem passar pela App, de forma explícita):
+Se preferir usar o profile `bench` diretamente (sem passar pela App, de forma explï¿½cita):
 
 ```bash
 mvn exec:java -Pbench
