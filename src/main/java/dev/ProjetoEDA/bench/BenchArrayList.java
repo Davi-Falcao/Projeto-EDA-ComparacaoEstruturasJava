@@ -5,171 +5,204 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Arrays;
 
 import org.json.JSONObject;
 
 import dev.ProjetoEDA.estruturas.arraylist.ArrayList;
 
-/**
- * Classe que realiza o benchmark de operações (inserção, remoção e busca) em uma estrutura de dados 
- * ArrayList personalizada. Para cada operação, o tempo de execução e o uso de memória são medidos
- * em 5 iterações, e os valores medianos são gravados em um arquivo CSV.
- */
+
 public class BenchArrayList {
 
     /**
      * Método principal que executa o benchmark das operações em um ArrayList.
      * Ele lê um arquivo CSV contendo uma sequência de operações (inserção, remoção e busca),
-     * executa cada operação no ArrayList 30 vezes para garantir a estabilidade dos resultados,
-     * e grava os tempos de execução e uso de memória no arquivo de saída em formato CSV.
+     * executa cada operação no ArrayList, registra os tempos de execução e uso de memória,
+     * e grava os resultados em um arquivo CSV de saída.
      * 
-     * @param args Argumentos passados pela linha de comando (que deve incluir o JSON de configuração).
+     * @param args Argumentos passados pela linha de comando, que incluem o JSON de configuração e o nome do arquivo de saída.
      * @throws IOException Caso ocorra algum erro na leitura ou escrita de arquivos.
      */
     public static void main(String[] args) throws IOException {
-        boolean ordemAdicao = false;
-        boolean ordemBusca = false;
-        JSONObject config = extrairConfigOpcional(args);
+        System.gc();
 
-        if (config != null) {
-            ordemBusca = config.optBoolean("OrdemBusca", false);
-            
-            ordemAdicao = config.optBoolean("OrdemAdicao", false);
+        if (args.length < 1) {
+            System.err.println("O nome do arquivo de saída não foi fornecido.");
+            return;
         }
+
+        String resultFilePath = args[args.length - 1]; 
+
+        JSONObject config = extrairConfigOpcional(args);
+        boolean ordemAdicao = config != null && config.optBoolean("OrdemAdicao", false);
+        boolean ordemBusca = config != null && config.optBoolean("OrdemBusca", false);
 
         String filePath = "data/entradas/ArrayList/OrdemDeBusca.csv";  
-        String resultFilePath = "data/results/ArrayList/resultOrdemDeBusca.csv"; 
 
         BufferedWriter writer = new BufferedWriter(new FileWriter(resultFilePath, true));
+        
+        inicializarArquivoDeSaida(writer, resultFilePath);
 
-        // Verifica se o arquivo está vazio para adicionar o cabeçalho
-        if (new File(resultFilePath).length() == 0) {
-            writer.write("Operacao,TamanhoEntrada,TempoExecucao(ns),MemoriaUso(bytes)\n");
-        }
+        processarOperacoes(filePath, writer, ordemAdicao, ordemBusca);
 
-        BufferedReader reader = new BufferedReader(new FileReader(filePath));
-        String line;
-
-        ArrayList lista = new ArrayList(10000);
-
-
-        // Processa cada linha do arquivo de entrada
-        while ((line = reader.readLine()) != null) {
-            String[] parts = line.split(",");
-            String operacao = parts[0].trim();
-            String indice = parts[1].trim();
-            String valor = parts[2].trim();
-
-            int[] tempos = new int[30];
-            int[] memorias = new int[30];
-
-            // Executa a operação 5 vezes para calcular a mediana
-            for (int i = 0; i < 30; i++) {
-                long memoriaAntes = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
-                long tempoAntes = System.nanoTime();
-
-                switch (operacao) {
-                    case "I": 
-                        int indexInsert = Integer.parseInt(indice);
-                        int valueInsert = Integer.parseInt(valor);
-                        if (ordemAdicao || ordemBusca) { 
-                            lista.add(valueInsert);  
-                        } else {
-                            lista.add(indexInsert, valueInsert);  
-                        }
-                        break;
-                    case "R": 
-                        int indexRemove = Integer.parseInt(indice);
-                        lista.remove(indexRemove); 
-                        break;
-                    case "S": 
-                        int valueSearch = Integer.parseInt(valor);
-                        int index = lista.indexOf(valueSearch);  
-                        break;
-                }
-
-                long memoriaDepois = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
-                long tempoDepois = System.nanoTime();
-
-                long tempoExecucao = tempoDepois - tempoAntes;
-                long memoriaUso = memoriaDepois - memoriaAntes;
-
-                tempos[i] = (int) tempoExecucao;
-                memorias[i] = (int) memoriaUso;
-            }
-
-            int tempoMediana = calcularMediana(tempos);
-            int memoriaMediana = calcularMediana(memorias);
-
-            writer.write(operacao + "," + lista.size() + "," + tempoMediana + "," + memoriaMediana + "\n");
-        }
-
-        reader.close();
         writer.close();
-
         System.out.println("Resultados gravados em: " + resultFilePath);
     }
-    
+
     /**
      * Extrai a configuração opcional fornecida como argumento de linha de comando no formato JSON.
      * 
      * Este método verifica se há argumentos passados para o programa. Se não houver nenhum argumento, 
-     * ele retorna {@code null}. Se houver mais de um argumento, ele imprime uma mensagem de erro e também retorna {@code null}.
-     * Caso o argumento seja um único JSON válido, ele tenta parseá-lo e retorná-lo como um objeto {@link JSONObject}.
-     * Se ocorrer algum erro ao processar o JSON, uma mensagem de erro é exibida e {@code null} é retornado.
+     * ele retorna {@code null}. Caso o argumento seja um único JSON válido, ele tenta parseá-lo e retorná-lo 
+     * como um objeto {@link JSONObject}. Se ocorrer algum erro ao processar o JSON, uma mensagem de erro é exibida 
+     * e {@code null} é retornado.
      * 
      * @param args O array de argumentos de linha de comando, que deve conter no máximo um argumento JSON.
      * @return O objeto {@link JSONObject} correspondente ao argumento JSON fornecido, ou {@code null} em caso de erro ou ausência de argumento válido.
      */
     private static JSONObject extrairConfigOpcional(String[] args) {
-        // Verifica se não há argumentos fornecidos
         if (args.length == 0) {
             return null;
         }
-    
-
-        // Verifica se mais de um argumento foi fornecido e exibe um erro
-        if (args.length > 1) {
-            System.err.println("Apenas um argumento JSON e permitido. Configuracao sera ignorada.");
-            return null;
-        }
-
-        // Tenta converter o primeiro argumento para um objeto JSON
         try {
-
             return new JSONObject(args[0]);
         } catch (Exception e) {
-
-            // Em caso de erro ao processar o JSON, exibe uma mensagem de erro
-            System.err.println("Erro ao processar o JSON fornecido. Configuracao sera ignorada.");
+            System.err.println("Erro ao processar o JSON fornecido. Configuração será ignorada.");
             return null;
         }
     }
 
+    /**
+     * Inicializa o arquivo de saída, verificando se o arquivo está vazio para adicionar o cabeçalho.
+     * 
+     * Esse método é chamado ao abrir o arquivo de saída. Caso o arquivo esteja vazio, ele escreve o cabeçalho 
+     * com os nomes das colunas: "Operacao", "TamanhoEntrada", "TempoExecucao(ns)", e "MemoriaUso(bytes)".
+     * 
+     * @param writer O objeto {@link BufferedWriter} usado para escrever os resultados no arquivo de saída.
+     * @param resultFilePath O caminho do arquivo de saída.
+     * @throws IOException Caso ocorra erro na escrita no arquivo de saída.
+     */
+    private static void inicializarArquivoDeSaida(BufferedWriter writer, String resultFilePath) throws IOException {
+        if (new File(resultFilePath).length() == 0) {
+            writer.write("Operacao,TamanhoEntrada,TempoExecucao(ns),MemoriaUso(bytes)\n");
+        }
+    }
 
     /**
-     * Calcula a mediana de um array de inteiros.
+     * Processa as operações a partir do arquivo CSV, executando as operações no ArrayList 
+     * e gravando os resultados de tempo e uso de memória em um arquivo CSV.
      * 
-     * A mediana é o valor central de um conjunto de números ordenados. Caso o número de elementos
-     * seja par, a mediana será a média dos dois elementos centrais.
+     * Este método realiza a leitura do arquivo de entrada, executa as operações no ArrayList conforme
+     * o tipo de operação (inserção, remoção ou busca), calcula o tempo e memória antes e depois da operação,
+     * e grava os resultados no arquivo de saída.
      * 
-     * Este método ordena o array de valores e retorna o valor mediano.
-     * 
-     * @param valores Array de inteiros contendo os valores para os quais a mediana será calculada.
-     * @return O valor da mediana.
+     * @param filePath O caminho do arquivo de entrada com as operações a serem realizadas.
+     * @param writer O objeto {@link BufferedWriter} usado para gravar os resultados.
+     * @param ordemAdicao Flag indicando se a ordem de adição deve ser respeitada.
+     * @param ordemBusca Flag indicando se a ordem de busca deve ser respeitada.
+     * @throws IOException Caso ocorra erro na leitura ou escrita dos arquivos.
      */
-    public static int calcularMediana(int[] valores) {
-        Arrays.sort(valores);
+    private static void processarOperacoes(String filePath, BufferedWriter writer, boolean ordemAdicao, boolean ordemBusca) throws IOException {
+        BufferedReader reader = new BufferedReader(new FileReader(filePath));
+        String line;
+        ArrayList lista = new ArrayList(10000);
+        
+        int[] indexFound = new int[1];
 
-        int n = valores.length;
-        if (n % 2 == 1) {
-            return valores[n / 2]; 
-        } else {
-            int mediana = (valores[n / 2 - 1] + valores[n / 2]) / 2;  
-            return mediana;
+        while ((line = reader.readLine()) != null) {
+            if (line.trim().isEmpty()) continue;
+
+            String[] parts = line.split(",");
+            if (parts.length < 3) {
+                System.err.println("Linha mal formatada: " + line);
+                continue;
+            }
+
+            String operacao = parts[0].trim();
+            String indice = parts[1].trim();
+            String valor = parts[2].trim();
+            long[] tempoEMemoriaAntes = calcularTempoEMemoria();
+            
+            realizarOperacao(lista, operacao, indice, valor, ordemAdicao, ordemBusca, indexFound);
+
+            long[] tempoEMemoriaDepois = calcularTempoEMemoria();
+            
+            long tempoExecucao = tempoEMemoriaDepois[0] - tempoEMemoriaAntes[0];
+            long memoriaUso = tempoEMemoriaDepois[1] - tempoEMemoriaAntes[1];
+
+            registrarResultado(writer, operacao, lista.size(), tempoExecucao, memoriaUso, indexFound[0]);
+        }
+
+        reader.close();
+    }
+
+    /**
+     * Calcula o tempo de execução e o uso de memória atuais.
+     * 
+     * Este método captura o tempo e a memória antes e depois de uma operação para monitorar o uso de recursos.
+     * Ele retorna um array com dois valores: tempo (em nanossegundos) e memória (em bytes).
+     * 
+     * @return Um array contendo o tempo e o uso de memória no momento da execução.
+     */
+    private static long[] calcularTempoEMemoria() {
+        long memoria = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+        long tempo = System.nanoTime();
+        return new long[] { tempo, memoria };
+    }
+
+    /**
+     * Registra os resultados de uma operação no arquivo CSV de saída.
+     * 
+     * Este método escreve os resultados da operação, incluindo a operação realizada, o tamanho da entrada,
+     * o tempo de execução e o uso de memória no arquivo de saída.
+     * 
+     * @param writer O objeto {@link BufferedWriter} usado para gravar os resultados no arquivo de saída.
+     * @param operacao O tipo de operação realizada (inserção, remoção ou busca).
+     * @param tamanhoEntrada O tamanho da entrada após a operação.
+     * @param tempoExecucao O tempo de execução da operação em nanossegundos.
+     * @param memoriaUso O uso de memória durante a operação em bytes.
+     * @throws IOException Caso ocorra erro na escrita do arquivo de saída.
+     */
+    private static void registrarResultado(BufferedWriter writer, String operacao, int tamanhoEntrada, long tempoExecucao, long memoriaUso, int indexFound) throws IOException {
+        if (operacao.equals("S")){
+
+            writer.write(operacao + "," + indexFound + "," + tempoExecucao + "," + memoriaUso + "\n");
+            return;
+        }
+        writer.write(operacao + "," + tamanhoEntrada + "," + tempoExecucao + "," + memoriaUso + "\n");
+    }
+
+    /**
+     * Realiza a operação indicada no ArrayList.
+     * 
+     * Este método executa a operação solicitada (inserção, remoção ou busca) no ArrayList, de acordo com os parâmetros fornecidos.
+     * Ele também respeita as flags de ordem de adição e de busca, quando aplicável.
+     * 
+     * @param lista A lista em que a operação será realizada.
+     * @param operacao O tipo de operação a ser executada ("I" para inserção, "R" para remoção, "S" para busca).
+     * @param indice O índice ou valor da operação.
+     * @param valor O valor da operação (usado para inserção e busca).
+     * @param ordemAdicao Flag indicando se a ordem de adição deve ser respeitada.
+     * @param ordemBusca Flag indicando se a ordem de busca deve ser respeitada.
+     */
+    private static void realizarOperacao(ArrayList lista, String operacao, String indice, String valor, boolean ordemAdicao, boolean ordemBusca, int[] indexFound) {
+        switch (operacao) {
+            case "I":
+                int indexInsert = Integer.parseInt(indice);
+                int valueInsert = Integer.parseInt(valor);
+                if (ordemAdicao || ordemBusca) {
+                    lista.add(valueInsert);
+                } else {
+                    lista.add(indexInsert, valueInsert);
+                }
+                break;
+            case "R":
+                int indexRemove = Integer.parseInt(indice);
+                lista.remove(indexRemove);
+                break;
+            case "S":
+                int valueSearch = Integer.parseInt(valor);
+                indexFound[0] = lista.indexOf(valueSearch); 
+                break;
         }
     }
 }
-
-

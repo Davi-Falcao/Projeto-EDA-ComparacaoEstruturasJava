@@ -31,7 +31,7 @@ plt.tight_layout()
 plt.show()
 plt.close(fig)
 
-
+plt.close('all')
 
 file_path = './data/results/ArrayList/resultOrdemDeBusca.csv'
 df = pd.read_csv(file_path)
