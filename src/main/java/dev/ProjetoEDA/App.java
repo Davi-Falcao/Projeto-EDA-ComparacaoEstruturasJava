@@ -56,7 +56,7 @@ public class App {
                 System.out.println("Executando: Benchmark de Inserção em ArrayList");
                 List<String> arquivosGerados = new ArrayList<>();
 
-                for (int i = 0; i < 10; i++) {
+                for (int i = 0; i < 30; i++) {
                     System.out.println("Executando iteração " + (i + 1));
                     String arquivoPath = "data/results/ArrayList/temp/arquivo_" + (i + 1) + ".csv";
                     arquivosGerados.add(arquivoPath);
@@ -84,7 +84,7 @@ public class App {
      * @throws IOException Caso ocorra algum erro ao ler os arquivos.
      */
     private static void calcularMedianaDosArquivos(List<String> arquivos, String PathSaida) throws IOException {
-        String mediana = arquivos.get(5); // A mediana é o arquivo no índice 3 (quarto arquivo gerado)
+        String mediana = arquivos.get(15); // A mediana é o arquivo no índice 3 (quarto arquivo gerado)
         String destino = "data/results/" + PathSaida;
     
         File origem = new File(mediana);

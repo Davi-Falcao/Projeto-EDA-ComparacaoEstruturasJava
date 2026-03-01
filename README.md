@@ -1,113 +1,115 @@
-# Projeto-EDA-ComparacaoEstruturasJava
-Nosso projeto tem como objetivo comparar o desempenho de diferentes estruturas de dados implementadas na mesma linguagem de programação (Java), considerando tanto suas versões convencionais quanto versões otimizadas. A análise será conduzida sob diferentes cargas de dados e contemplará três operações fundamentais: inserção, remoção e busca.
+# Projeto EDA - Comparacao de Estruturas em Java
 
-## Como Usar Maven (MVN)
+Este projeto executa benchmarks de operacoes em estruturas de dados (atualmente, `ArrayList` customizado), medindo:
+- tempo de execucao por operacao (`ns`)
+- variacao de memoria por operacao (`bytes`)
 
-### Pré-requisitos
-- Java 8 ou superior instalado
-- Maven instalado e configurado no PATH
+As operacoes lidas do CSV sao:
+- `I` (insercao)
+- `R` (remocao)
+- `S` (busca)
 
-### Compilar o Projeto
+## O que o codigo faz
 
-Para compilar todos os arquivos fonte:
+### Fluxo principal (`App.java`)
+1. Le o argumento do Maven (`-Dexec.args`).
+2. Executa o benchmark `arraylist` por **30 iteracoes**.
+3. Cada iteracao gera um CSV temporario em `data/results/ArrayList/temp/`.
+4. Ao final, copia o arquivo da posicao mediana (indice 15) para:
+   - `data/results/ArrayList/resultOrdemDeBusca.csv`
+5. Remove os arquivos temporarios.
+
+### Benchmark (`BenchArrayList.java`)
+1. Le as operacoes de entrada de `data/entradas/ArrayList/OrdemDeBusca.csv`.
+2. Para cada linha, executa a operacao no `ArrayList` customizado.
+3. Registra no CSV de saida:
+   - operacao
+   - tamanho atual da estrutura (ou indice encontrado em busca)
+   - tempo de execucao
+   - uso de memoria
+
+## Como executar
+
+### Pre-requisitos
+- Java 8+
+- Maven no `PATH`
+
+### 1. Compilar
 ```bash
 mvn clean compile
 ```
 
-### Executar via App (Seletor de Benchmarks)
-
-A classe `App.java` funciona como um menu para escolher qual benchmark executar. **Esta é a forma recomendada:**
-
-#### 1. Exibir Menu de Opções
+### 2. Ver menu do app
 ```bash
-mvn exec:java
+mvn exec:java -Papp
 ```
 
-#### 2. Executar um Benchmark Específico
-
-**Benchmark de Inserção em ArrayList (sem argumentos):**
+### 3. Rodar benchmark pelo app (recomendado)
+Sem configuracao JSON:
 ```bash
-mvn exec:java '-Dexec.args=arraylist-insertion'
+mvn exec:java -Papp "-Dexec.args=arraylist"
 ```
 
-**Benchmark com JSON (PowerShell):**
+Com configuracao JSON (PowerShell):
 ```bash
-mvn exec:java '-Dexec.args=arraylist-insertion,{"OrdemDeBusca":true}'
+mvn exec:java -Papp "-Dexec.args=arraylist,{\"OrdemBusca\":true}"
 ```
 
-**Benchmark com JSON (bash):**
+Com configuracao JSON (bash):
 ```bash
-mvn exec:java -Dexec.args='arraylist-insertion,{"OrdemDeBusca":true}'
+mvn exec:java -Papp -Dexec.args='arraylist,{"OrdemBusca":true}'
 ```
 
-### Executar Diretamente o Benchmark (Alternativa)
+## Formato de entrada e saida
 
-Se preferir usar o profile `bench` diretamente (sem passar pela App, de forma expl�cita):
+### Entrada (`data/entradas/ArrayList/OrdemDeBusca.csv`)
+Cada linha segue:
+```text
+Operacao,Indice,Valor
+```
+
+Exemplos:
+```text
+I,0,10
+R,3,0
+S,0,42
+```
+
+### Saida (`data/results/ArrayList/resultOrdemDeBusca.csv`)
+Cabecalho:
+```text
+Operacao,TamanhoEntrada,TempoExecucao(ns),MemoriaUso(bytes)
+```
+
+Observacao:
+- em operacao `S` (busca), a coluna `TamanhoEntrada` recebe o indice encontrado.
+
+## Estrutura principal do projeto
+
+```text
+src/main/java/dev/ProjetoEDA/
+  App.java
+  bench/BenchArrayList.java
+  estruturas/arraylist/ArrayList.java
+
+src/tests/java/dev/ProjetoEDA/estruturas/
+  ArrayListAsserts.java
+
+data/entradas/ArrayList/
+  OrdemDeBusca.csv
+  OrdemDeAdicao.csv
+
+data/results/ArrayList/
+  resultOrdemDeBusca.csv
+  resultOrdemDeAdicao.csv
+```
+
+## Comandos uteis
 
 ```bash
-mvn exec:java -Pbench
+mvn clean
+mvn compile
+mvn test
+mvn package
+mvn exec:java -Papp
 ```
-
-Com JSON:
-```bash
-mvn exec:java -Pbench '-Dexec.args={"OrdemAdicao":true}'
-```
-
-### Compilar e Executar em Uma Linha
-
-```bash
-# Exibir menu
-mvn clean compile exec:java
-
-# Executar benchmark específico
-mvn clean compile exec:java '-Dexec.args=arraylist-insertion'
-```
-
-### Rotas Úteis
-
-| Comando | Descrição |
-|---------|-----------|
-| `mvn clean` | Remove diretório `/target` |
-| `mvn compile` | Compila o código |
-| `mvn test` | Executa testes |
-| `mvn package` | Gera JAR do projeto |
-| `mvn exec:java` | Exibe menu de benchmarks |
-| `mvn exec:java '-Dexec.args=arraylist-insertion'` | Executa Benchmark ArrayList |
-| `mvn exec:java '-Dexec.args=arraylist-insertion,{"OrdemAdicao":true}'` | Benchmark com JSON |
-| `mvn exec:java -Pbench` | Executa benchmark diretamente |
- 
-### Estrutura do Projeto
-
-```
-src/
-├── main/java/dev/ProjetoEDA/
-│   ├── App.java                    # Classe principal
-│   ├── bench/
-│   │   └── BenchArrayListInsertion.java  # Benchmark de inserção
-│   └── estruturas/
-│       └── arraylist/
-│           └── ArrayList.java       # Implementação do ArrayList
-└── test/java/dev/ProjetoEDA/
-    └── estruturas/
-        └── ArrayListAsserts.java    # Testes unitários
-
-data/
-├── entradas/
-│   └── ArrayList/
-│       └── OrdemDeAdicao.csv        # Dados de entrada
-└── results/
-    └── ArrayList/
-        └── resultOrdemDeAdicao.csv  # Resultados do benchmark
-```
-
-### Parâmetros de Configuração
-
-O JSON de configuração aceita:
-- `OrdemAdicao` (boolean): Define se os dados seguem ordem de adição
-
-Exemplo:
-```json
-{"OrdemAdicao":true}
-```
-
-
