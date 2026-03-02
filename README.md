@@ -1,90 +1,151 @@
 # Projeto EDA - Comparacao de Estruturas em Java
 
-Este projeto executa benchmarks de operacoes em estruturas de dados (atualmente, `ArrayList` customizado), medindo:
-- tempo de execucao por operacao (`ns`)
-- variacao de memoria por operacao (`bytes`)
+Projeto para benchmark de operacoes em estruturas de dados (atualmente `ArrayList` customizado), medindo:
+- tempo por operacao (`TempoExecucao(ns)`)
+- variacao de memoria por operacao (`MemoriaUso(bytes)`)
 
-As operacoes lidas do CSV sao:
-- `I` (insercao)
-- `R` (remocao)
-- `S` (busca)
+As operacoes de entrada sao:
+- `I` insercao
+- `R` remocao
+- `S` busca
 
-## O que o codigo faz
+## Visao geral do funcionamento
 
-### Fluxo principal (`App.java`)
-1. Le o argumento do Maven (`-Dexec.args`).
-2. Executa o benchmark `arraylist` por **30 iteracoes**.
-3. Cada iteracao gera um CSV temporario em `data/results/ArrayList/temp/`.
-4. Ao final, copia o arquivo da posicao mediana (indice 15) para:
-   - `data/results/ArrayList/resultOrdemDeBusca.csv`
-5. Remove os arquivos temporarios.
+### `App.java` (orquestrador)
+O `App`:
+1. Le `-Dexec.args`.
+2. Extrai o benchmark (ex.: `arraylist`) e o JSON de configuracao.
+3. Valida o campo obrigatorio `Entrada` no JSON.
+4. Executa o benchmark por 30 iteracoes.
+5. Salva cada iteracao em arquivo temporario em `data/results/temp/`.
+6. Seleciona o arquivo mediano (indice central) e copia para `data/results/ArrayList/result_<Entrada>`.
+7. Remove os temporarios.
 
-### Benchmark (`BenchArrayList.java`)
-1. Le as operacoes de entrada de `data/entradas/ArrayList/OrdemDeBusca.csv`.
-2. Para cada linha, executa a operacao no `ArrayList` customizado.
-3. Registra no CSV de saida:
-   - operacao
-   - tamanho atual da estrutura (ou indice encontrado em busca)
-   - tempo de execucao
-   - uso de memoria
+### `BenchArrayList.java` (executor)
+O bench:
+1. Recebe argumentos (com ou sem JSON de configuracao).
+2. Resolve arquivo de entrada:
+   - se for nome simples, usa `data/entradas/ArrayList/<arquivo>`
+   - se tiver caminho (`/` ou `\\`), usa caminho informado.
+3. Le cada linha do CSV (`Operacao,Indice,Valor`).
+4. Executa a operacao na estrutura `ArrayList` customizada.
+5. Registra no CSV de saida:
+   - `Operacao`
+   - `TamanhoEntrada` (ou indice encontrado, no caso de busca `S`)
+   - `TempoExecucao(ns)`
+   - `MemoriaUso(bytes)`
+
+## Pre-requisitos
+
+- Java 21
+- Maven instalado e no `PATH`
 
 ## Como executar
-
-### Pre-requisitos
-- Java 8+
-- Maven no `PATH`
 
 ### 1. Compilar
 ```bash
 mvn clean compile
 ```
 
-### 2. Ver menu do app
+### 2. Mostrar menu/instrucoes do app
 ```bash
 mvn exec:java -Papp
 ```
 
-### 3. Rodar benchmark pelo app (recomendado)
-Sem configuracao JSON:
-```bash
-mvn exec:java -Papp "-Dexec.args=arraylist"
+### 3. Rodar benchmark via app (recomendado)
+
+PowerShell:
+```powershell
+mvn exec:java -Papp "-Dexec.args=arraylist,{\"Entrada\":\"crescente_n100000_I50_R0_S50.csv\"}"
 ```
 
-Com configuracao JSON (PowerShell):
+bash/WSL:
 ```bash
-mvn exec:java -Papp "-Dexec.args=arraylist,{\"OrdemBusca\":true}"
+mvn exec:java -Papp -Dexec.args='arraylist,{"Entrada":"crescente_n100000_I50_R0_S50.csv"}'
 ```
 
-Com configuracao JSON (bash):
+Com flag opcional:
 ```bash
-mvn exec:java -Papp -Dexec.args='arraylist,{"OrdemBusca":true}'
+mvn exec:java -Papp -Dexec.args='arraylist,{"Entrada":"crescente_n100000_I50_R0_S50.csv","OrdemBusca":true}'
 ```
 
-## Formato de entrada e saida
+## Campos do JSON (`-Dexec.args`)
 
-### Entrada (`data/entradas/ArrayList/OrdemDeBusca.csv`)
-Cada linha segue:
+Exemplo base:
+```json
+{"Entrada":"crescente_n100000_I50_R0_S50.csv","OrdemAdicao":false,"OrdemBusca":true}
+```
+
+Campos:
+- `Entrada` (obrigatorio): nome do CSV de entrada ou caminho completo.
+- `OrdemAdicao` (opcional, default `false`): quando `true`, insercao `I` usa `add(valor)` (fim da lista), ignorando o indice da linha.
+- `OrdemBusca` (opcional, default `false`): no codigo atual, tambem faz insercao `I` usar `add(valor)`.
+
+Observacao importante:
+- No comportamento atual, se `OrdemAdicao` **ou** `OrdemBusca` for `true`, a insercao passa a ignorar `Indice` e inserir no fim.
+
+## Como colocar dados no benchmark
+
+### Formato do arquivo de entrada
+
+Crie arquivos em `data/entradas/ArrayList/` sem cabecalho, com 3 colunas:
 ```text
 Operacao,Indice,Valor
 ```
 
-Exemplos:
+Exemplo:
 ```text
 I,0,10
-R,3,0
-S,0,42
+I,1,11
+S,0,10
+R,1,0
 ```
 
-### Saida (`data/results/ArrayList/resultOrdemDeBusca.csv`)
-Cabecalho:
+Regras praticas por operacao:
+- `I,indice,valor`: insere `valor` na posicao `indice` (ou no fim, se flags de ordem estiverem ativas).
+- `R,indice,valor`: remove no `indice`; o campo `valor` e ignorado.
+- `S,indice,valor`: busca por `valor`; o campo `indice` e ignorado.
+
+### Gerar massa automaticamente (scripts)
+
+Os scripts em `scripts/generatorScriptsArrayList/` geram CSV em `data/entradas/ArrayList/`:
+- `gerarDadosOrdemCrescente.sh`
+- `gerarDadosRandom.sh`
+
+Uso (Linux/WSL/Git Bash):
+```bash
+bash scripts/generatorScriptsArrayList/gerarDadosRandom.sh
+```
+
+Antes de executar, ajuste no script:
+- `OPERACOES`
+- `WARMUP`
+- `P_INSERT`, `P_REMOVE`, `P_SEARCH` (devem somar 100)
+- `VALOR_MAX`
+
+## Rodar somente o bench (sem App)
+
+Sem JSON (2 args: entrada e saida):
+```bash
+mvn exec:java -Dexec.mainClass=dev.ProjetoEDA.bench.BenchArrayList -Dexec.args='crescente_n100000_I50_R0_S50.csv,data/results/ArrayList/result_manual.csv'
+```
+
+Com JSON (3 args: json, entrada, saida):
+```bash
+mvn exec:java -Dexec.mainClass=dev.ProjetoEDA.bench.BenchArrayList -Dexec.args='{"OrdemBusca":true},crescente_n100000_I50_R0_S50.csv,data/results/ArrayList/result_manual.csv'
+```
+
+## Saidas geradas
+
+- Temporarios por iteracao: `data/results/temp/arquivo_<n>.csv`
+- Resultado final do app: `data/results/ArrayList/result_<nome_do_arquivo_entrada>`
+
+Formato da saida:
 ```text
 Operacao,TamanhoEntrada,TempoExecucao(ns),MemoriaUso(bytes)
 ```
 
-Observacao:
-- em operacao `S` (busca), a coluna `TamanhoEntrada` recebe o indice encontrado.
-
-## Estrutura principal do projeto
+## Estrutura principal
 
 ```text
 src/main/java/dev/ProjetoEDA/
@@ -92,16 +153,16 @@ src/main/java/dev/ProjetoEDA/
   bench/BenchArrayList.java
   estruturas/arraylist/ArrayList.java
 
-src/tests/java/dev/ProjetoEDA/estruturas/
-  ArrayListAsserts.java
-
 data/entradas/ArrayList/
-  OrdemDeBusca.csv
-  OrdemDeAdicao.csv
+  *.csv
 
-data/results/ArrayList/
-  resultOrdemDeBusca.csv
-  resultOrdemDeAdicao.csv
+data/results/
+  temp/
+  ArrayList/
+
+scripts/generatorScriptsArrayList/
+  gerarDadosOrdemCrescente.sh
+  gerarDadosRandom.sh
 ```
 
 ## Comandos uteis

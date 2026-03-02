@@ -2,94 +2,80 @@ package dev.ProjetoEDA;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
 import dev.ProjetoEDA.bench.BenchArrayList;
 
 /**
- * Classe principal que funciona como um seletor de benchmarks.
- * Permite escolher e executar diferentes classes de benchmark com argumentos JSON.
- */ 
+ * Classe principal responsável por selecionar e executar benchmarks.
+ * A execução é realizada via argumentos passados pelo Maven.
+ */
 public class App {
 
+    private static final int ITERACOES = 30;
+    private static final String TEMP_DIR = "data/results/temp/";
+
     public static void main(String[] args) throws Exception {
-        if (args.length == 0) {
+        if (args.length < 2) {
             exibirMenu();
             return;
         }
 
-        String fullArg = args[0];
-        String benchmark;
-        String jsonConfig = "";
+        String benchmark = args[0].trim().toLowerCase();
+        String arquivoEntradaPath = args[1].trim();
 
-        if (fullArg.contains(",")) {
-            int commaIndex = fullArg.indexOf(",");
-            benchmark = fullArg.substring(0, commaIndex).toLowerCase();
-            jsonConfig = fullArg.substring(commaIndex + 1).trim();
-        } else {
-            benchmark = fullArg.toLowerCase();
-        }
-
-        executarBenchmark(benchmark, jsonConfig);
+        executarBenchmark(benchmark, arquivoEntradaPath);
     }
 
     private static void exibirMenu() {
-        System.out.println("========================================================");
-        System.out.println("      SELETOR DE BENCHMARKS - EDA COMPARAÇÃO JAVA       ");
-        System.out.println("========================================================");
-        System.out.println("Benchmarks disponíveis:");
-        System.out.println("  1. arraylist-insertion  - Benchmark de inserção em ArrayList");
-        System.out.println();
+        System.out.println("==============================================================");
+        System.out.println("        SELETOR DE BENCHMARKS - EDA COMPARAÇÃO JAVA          ");
+        System.out.println("==============================================================");
         System.out.println("Uso:");
-        System.out.println("  mvn exec:java -Papp");
-        System.out.println("  mvn exec:java -Papp '-Dexec.args=arraylist'");
-        System.out.println("  mvn exec:java -Papp '-Dexec.args=arraylist,{\"OrdemAdicao\":true}'");
-        System.out.println();
+        System.out.println("  mvn exec:java -Papp -Dexec.args=\"arraylist nomeArquivo.csv\"");
+        System.out.println("Exemplo:");
+        System.out.println("  mvn exec:java -Papp -Dexec.args=\"arraylist crescente_n100000_I50_R0_S50.csv\"");
+        System.out.println("PowerShell:");
+        System.out.println("  mvn exec:java -Papp \"-Dexec.args=arraylist crescente_n100000_I50_R0_S50.csv\"");
+        System.out.println("==============================================================");
     }
 
-
-    private static void executarBenchmark(String benchmark, String jsonConfig) throws Exception {
+    private static void executarBenchmark(String benchmark, String arquivoEntradaPath) throws Exception {
         switch (benchmark) {
             case "arraylist":
             case "1":
-                System.out.println("Executando: Benchmark de Inserção em ArrayList");
+
                 List<String> arquivosGerados = new ArrayList<>();
 
-                for (int i = 0; i < 30; i++) {
+                for (int i = 0; i < ITERACOES; i++) {
                     System.out.println("Executando iteração " + (i + 1));
-                    String arquivoPath = "data/results/ArrayList/temp/arquivo_" + (i + 1) + ".csv";
-                    arquivosGerados.add(arquivoPath);
-                    if (!jsonConfig.isEmpty()) {
-                        BenchArrayList.main(new String[]{jsonConfig, arquivoPath});
-                    } else {
-                        BenchArrayList.main(new String[]{arquivoPath});
-                    }
-                }
+                    String arquivoSaidaPath = TEMP_DIR + "arquivo_" + (i + 1) + ".csv";
+                    arquivosGerados.add(arquivoSaidaPath);
 
-                calcularMedianaDosArquivos(arquivosGerados, "ArrayList/resultCrescente_n100000_I50_R0_S50.csv");
+                    BenchArrayList.main(new String[]{arquivoEntradaPath, arquivoSaidaPath});
+                }
+                String pathSaida = "ArrayList/result_" + arquivoEntradaPath;
+                calcularMedianaDosArquivos(arquivosGerados, pathSaida);
                 break;
 
             default:
-                System.err.println("Erro: Benchmark '" + benchmark + "' não encontrado!");
-                System.err.println("Benchmarks disponíveis: arraylist");
-                System.exit(1);
+                System.err.println("Benchmark não encontrado.");
         }
     }
 
-    /**
-     * Calcula a mediana a partir dos 5 arquivos gerados pelo benchmark.
-     * 
-     * @param arquivos Lista dos caminhos dos arquivos gerados.
-     * @throws IOException Caso ocorra algum erro ao ler os arquivos.
-     */
-    private static void calcularMedianaDosArquivos(List<String> arquivos, String PathSaida) throws IOException {
-        String mediana = arquivos.get(15); // A mediana é o arquivo no índice 3 (quarto arquivo gerado)
-        String destino = "data/results/" + PathSaida;
-    
-        File origem = new File(mediana);
-        File destinoFile = new File(destino);
-        java.nio.file.Files.copy(origem.toPath(), destinoFile.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+    private static void calcularMedianaDosArquivos(List<String> arquivos, String pathSaida) throws IOException {
+        if (arquivos == null || arquivos.isEmpty()) return;
+
+        int medianaIndex = arquivos.size() / 2;
+        String mediana = arquivos.get(medianaIndex);
+
+        String destino = "data/results/" + pathSaida;
+
+        Files.copy(new File(mediana).toPath(), new File(destino).toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+        System.out.println("Resultados gravados em: " + destino);
+
 
         for (String arquivo : arquivos) {
             new File(arquivo).delete();

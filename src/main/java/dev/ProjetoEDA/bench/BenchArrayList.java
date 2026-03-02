@@ -6,70 +6,48 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 
-import org.json.JSONObject;
-
 import dev.ProjetoEDA.estruturas.arraylist.ArrayList;
 
 
 public class BenchArrayList {
 
+    private static final String BASE_INPUT_DIR = "data/entradas/ArrayList/";
+    
     /**
      * Método principal que executa o benchmark das operações em um ArrayList.
      * Ele lê um arquivo CSV contendo uma sequência de operações (inserção, remoção e busca),
      * executa cada operação no ArrayList, registra os tempos de execução e uso de memória,
      * e grava os resultados em um arquivo CSV de saída.
      * 
-     * @param args Argumentos passados pela linha de comando, que incluem o JSON de configuração e o nome do arquivo de saída.
+     * @param args Argumentos passados pela linha de comando, que incluem o JSON de configuração e o nome do arquivo de entrada e saída.
      * @throws IOException Caso ocorra algum erro na leitura ou escrita de arquivos.
      */
+   
     public static void main(String[] args) throws IOException {
         System.gc();
-
-        if (args.length < 1) {
-            System.err.println("O nome do arquivo de saída não foi fornecido.");
+        
+        if (args.length < 2) {
+            System.err.println("Uso: <arquivoEntrada> <arquivoSaida>");
             return;
         }
 
-        String resultFilePath = args[args.length - 1]; 
+        String entryFilePath = args[0];
+        String resultFilePath = args[1];
 
-        JSONObject config = extrairConfigOpcional(args);
-        boolean ordemAdicao = config != null && config.optBoolean("OrdemAdicao", false);
-        boolean ordemBusca = config != null && config.optBoolean("OrdemBusca", false);
-
-        String filePath = "data/entradas/ArrayList/crescente_n100000_I50_R0_S50.csv";  
+        String filePath = (entryFilePath.contains("/") || entryFilePath.contains("\\"))
+                ? entryFilePath
+                : BASE_INPUT_DIR + entryFilePath;
 
         BufferedWriter writer = new BufferedWriter(new FileWriter(resultFilePath, true));
-        
-        inicializarArquivoDeSaida(writer, resultFilePath);
 
-        processarOperacoes(filePath, writer, ordemAdicao, ordemBusca);
+        inicializarArquivoDeSaida(writer, resultFilePath);
+        processarOperacoes(filePath, writer);
 
         writer.close();
-        System.out.println("Resultados gravados em: " + resultFilePath);
+        
+
     }
 
-    /**
-     * Extrai a configuração opcional fornecida como argumento de linha de comando no formato JSON.
-     * 
-     * Este método verifica se há argumentos passados para o programa. Se não houver nenhum argumento, 
-     * ele retorna {@code null}. Caso o argumento seja um único JSON válido, ele tenta parseá-lo e retorná-lo 
-     * como um objeto {@link JSONObject}. Se ocorrer algum erro ao processar o JSON, uma mensagem de erro é exibida 
-     * e {@code null} é retornado.
-     * 
-     * @param args O array de argumentos de linha de comando, que deve conter no máximo um argumento JSON.
-     * @return O objeto {@link JSONObject} correspondente ao argumento JSON fornecido, ou {@code null} em caso de erro ou ausência de argumento válido.
-     */
-    private static JSONObject extrairConfigOpcional(String[] args) {
-        if (args.length == 0) {
-            return null;
-        }
-        try {
-            return new JSONObject(args[0]);
-        } catch (Exception e) {
-            System.err.println("Erro ao processar o JSON fornecido. Configuração será ignorada.");
-            return null;
-        }
-    }
 
     /**
      * Inicializa o arquivo de saída, verificando se o arquivo está vazio para adicionar o cabeçalho.
@@ -101,7 +79,7 @@ public class BenchArrayList {
      * @param ordemBusca Flag indicando se a ordem de busca deve ser respeitada.
      * @throws IOException Caso ocorra erro na leitura ou escrita dos arquivos.
      */
-    private static void processarOperacoes(String filePath, BufferedWriter writer, boolean ordemAdicao, boolean ordemBusca) throws IOException {
+    private static void processarOperacoes(String filePath, BufferedWriter writer) throws IOException {
         BufferedReader reader = new BufferedReader(new FileReader(filePath));
         String line;
         ArrayList lista = new ArrayList(10000);
@@ -122,7 +100,7 @@ public class BenchArrayList {
             String valor = parts[2].trim();
             long[] tempoEMemoriaAntes = calcularTempoEMemoria();
             
-            realizarOperacao(lista, operacao, indice, valor, ordemAdicao, ordemBusca, indexFound);
+            realizarOperacao(lista, operacao, indice, valor, indexFound);
 
             long[] tempoEMemoriaDepois = calcularTempoEMemoria();
             
@@ -184,16 +162,12 @@ public class BenchArrayList {
      * @param ordemAdicao Flag indicando se a ordem de adição deve ser respeitada.
      * @param ordemBusca Flag indicando se a ordem de busca deve ser respeitada.
      */
-    private static void realizarOperacao(ArrayList lista, String operacao, String indice, String valor, boolean ordemAdicao, boolean ordemBusca, int[] indexFound) {
+    private static void realizarOperacao(ArrayList lista, String operacao, String indice, String valor, int[] indexFound) {
         switch (operacao) {
             case "I":
                 int indexInsert = Integer.parseInt(indice);
                 int valueInsert = Integer.parseInt(valor);
-                if (ordemAdicao || ordemBusca) {
-                    lista.add(valueInsert);
-                } else {
-                    lista.add(indexInsert, valueInsert);
-                }
+                lista.add(indexInsert, valueInsert); 
                 break;
             case "R":
                 int indexRemove = Integer.parseInt(indice);
