@@ -1,99 +1,51 @@
 # Projeto EDA - Comparacao de Estruturas em Java
 
-Projeto para benchmark de operacoes em estruturas de dados (atualmente `ArrayList` customizado), medindo:
-- tempo por operacao (`TempoExecucao(ns)`)
-- variacao de memoria por operacao (`MemoriaUso(bytes)`)
+Projeto para benchmark de operacoes em estruturas de dados (atualmente `ArrayList` customizado), medindo por operacao:
+- `TempoExecucao(ns)`
+- `MemoriaUso(bytes)`
 
 As operacoes de entrada sao:
-- `I` insercao
-- `R` remocao
-- `S` busca
+- `I`: insercao
+- `R`: remocao
+- `S`: busca
 
-## Visao geral do funcionamento
+## 1) Pre-requisitos
 
-### `App.java` (orquestrador)
-O `App`:
-1. Le `-Dexec.args`.
-2. Extrai o benchmark (ex.: `arraylist`) e o JSON de configuracao.
-3. Valida o campo obrigatorio `Entrada` no JSON.
-4. Executa o benchmark por 30 iteracoes.
-5. Salva cada iteracao em arquivo temporario em `data/results/temp/`.
-6. Seleciona o arquivo mediano (indice central) e copia para `data/results/ArrayList/result_<Entrada>`.
-7. Remove os temporarios.
+- Java (JDK) 8+
+- Maven no `PATH`
+- Para gerar dados com script `.sh`: Git Bash, WSL ou Linux/macOS
+- Para graficos: Python 3 com `pandas` e `matplotlib`
 
-### `BenchArrayList.java` (executor)
-O bench:
-1. Recebe argumentos (com ou sem JSON de configuracao).
-2. Resolve arquivo de entrada:
-   - se for nome simples, usa `data/entradas/ArrayList/<arquivo>`
-   - se tiver caminho (`/` ou `\\`), usa caminho informado.
-3. Le cada linha do CSV (`Operacao,Indice,Valor`).
-4. Executa a operacao na estrutura `ArrayList` customizada.
-5. Registra no CSV de saida:
-   - `Operacao`
-   - `TamanhoEntrada` (ou indice encontrado, no caso de busca `S`)
-   - `TempoExecucao(ns)`
-   - `MemoriaUso(bytes)`
+## 2) Compilacao e execucao com Maven
 
-## Pre-requisitos
+Compilar o projeto:
 
-- Java 21
-- Maven instalado e no `PATH`
-
-## Como executar
-
-### 1. Compilar
 ```bash
 mvn clean compile
 ```
 
-### 2. Mostrar menu/instrucoes do app
+Executar o App (perfil `app`):
+
 ```bash
 mvn exec:java -Papp
 ```
 
-### 3. Rodar benchmark via app (recomendado)
+Sem argumentos, o App apenas exibe o menu de uso.
 
-PowerShell:
-```powershell
-mvn exec:java -Papp "-Dexec.args=arraylist,{\"Entrada\":\"crescente_n100000_I50_R0_S50.csv\"}"
-```
+## 3) Formato dos dados de entrada
 
-bash/WSL:
-```bash
-mvn exec:java -Papp -Dexec.args='arraylist,{"Entrada":"crescente_n100000_I50_R0_S50.csv"}'
-```
+Os arquivos de entrada devem ficar em:
 
-Com flag opcional:
-```bash
-mvn exec:java -Papp -Dexec.args='arraylist,{"Entrada":"crescente_n100000_I50_R0_S50.csv","OrdemBusca":true}'
-```
+`data/entradas/ArrayList/`
 
-## Campos do JSON (`-Dexec.args`)
+Formato de cada linha (sem cabecalho):
 
-Exemplo base:
-```json
-{"Entrada":"crescente_n100000_I50_R0_S50.csv","OrdemAdicao":false,"OrdemBusca":true}
-```
-
-Campos:
-- `Entrada` (obrigatorio): nome do CSV de entrada ou caminho completo.
-- `OrdemAdicao` (opcional, default `false`): quando `true`, insercao `I` usa `add(valor)` (fim da lista), ignorando o indice da linha.
-- `OrdemBusca` (opcional, default `false`): no codigo atual, tambem faz insercao `I` usar `add(valor)`.
-
-Observacao importante:
-- No comportamento atual, se `OrdemAdicao` **ou** `OrdemBusca` for `true`, a insercao passa a ignorar `Indice` e inserir no fim.
-
-## Como colocar dados no benchmark
-
-### Formato do arquivo de entrada
-
-Crie arquivos em `data/entradas/ArrayList/` sem cabecalho, com 3 colunas:
 ```text
 Operacao,Indice,Valor
 ```
 
 Exemplo:
+
 ```text
 I,0,10
 I,1,11
@@ -101,51 +53,121 @@ S,0,10
 R,1,0
 ```
 
-Regras praticas por operacao:
-- `I,indice,valor`: insere `valor` na posicao `indice` (ou no fim, se flags de ordem estiverem ativas).
-- `R,indice,valor`: remove no `indice`; o campo `valor` e ignorado.
-- `S,indice,valor`: busca por `valor`; o campo `indice` e ignorado.
+Como o `BenchArrayList` interpreta:
+- `I,indice,valor`: faz `add(indice, valor)`
+- `R,indice,valor`: faz `remove(indice)` (campo `valor` e ignorado)
+- `S,indice,valor`: faz `indexOf(valor)` (campo `indice` e ignorado)
 
-### Gerar massa automaticamente (scripts)
+## 4) Criacao de massa com script `.sh`
 
-Os scripts em `scripts/generatorScriptsArrayList/` geram CSV em `data/entradas/ArrayList/`:
-- `gerarDadosOrdemCrescente.sh`
-- `gerarDadosRandom.sh`
+Script principal:
 
-Uso (Linux/WSL/Git Bash):
+`scripts/generatorScriptsArrayList/gerarDadosRandom.sh`
+
+Passos:
+
+1. Abra o script e ajuste:
+   - `OPERACOES`
+   - `WARMUP`
+   - `VALOR_MAX`
+   - `P_INSERT`, `P_REMOVE`, `P_SEARCH` (a soma deve ser 100)
+2. Execute:
+
 ```bash
 bash scripts/generatorScriptsArrayList/gerarDadosRandom.sh
 ```
 
-Antes de executar, ajuste no script:
-- `OPERACOES`
-- `WARMUP`
-- `P_INSERT`, `P_REMOVE`, `P_SEARCH` (devem somar 100)
-- `VALOR_MAX`
+3. O arquivo CSV sera gerado em:
 
-## Rodar somente o bench (sem App)
+`data/entradas/ArrayList/`
 
-Sem JSON (2 args: entrada e saida):
+Nome padrao gerado:
+
+`random_n<OPERACOES>_I<P_INSERT>_R<P_REMOVE>_S<P_SEARCH>.csv`
+
+Observacao: o script gera operacoes em arquivo temporario e aplica `shuf` no final, entao a ordem final fica embaralhada.
+
+## 5) Rodar benchmark pelo App (fluxo recomendado)
+
+Comando (PowerShell):
+
+```powershell
+mvn exec:java -Papp "-Dexec.args=arraylist random_n100000_I50_R0_S50.csv"
+```
+
+Comando (bash/WSL):
+
 ```bash
-mvn exec:java -Dexec.mainClass=dev.ProjetoEDA.bench.BenchArrayList -Dexec.args='crescente_n100000_I50_R0_S50.csv,data/results/ArrayList/result_manual.csv'
+mvn exec:java -Papp -Dexec.args="arraylist random_n100000_I50_R0_S50.csv"
 ```
 
-Com JSON (3 args: json, entrada, saida):
+## 6) O que acontece internamente no benchmark (passo a passo)
+
+### 6.1 Fluxo do `App`
+
+1. Recebe 2 argumentos: benchmark e arquivo de entrada.
+2. Para `arraylist`, executa `30` iteracoes.
+3. Em cada iteracao, chama `BenchArrayList` e grava em:
+   - `data/results/temp/arquivo_1.csv`
+   - ...
+   - `data/results/temp/arquivo_30.csv`
+4. Seleciona o arquivo na posicao mediana da lista (indice `15`).
+5. Copia esse arquivo para:
+   - `data/results/ArrayList/result_<arquivo_de_entrada>`
+6. Remove os arquivos temporarios.
+
+### 6.2 Fluxo do `BenchArrayList`
+
+1. Recebe `<arquivoEntrada> <arquivoSaida>`.
+2. Resolve entrada:
+   - Se vier apenas nome: usa `data/entradas/ArrayList/<nome>`.
+   - Se vier caminho com `/` ou `\`: usa caminho informado.
+3. Le o CSV linha a linha.
+4. Executa cada operacao na estrutura `ArrayList` customizada.
+5. Para cada linha, mede:
+   - tempo com `System.nanoTime()`
+   - memoria com `totalMemory - freeMemory`
+6. Registra no CSV de saida:
+   - `Operacao,TamanhoEntrada,TempoExecucao(ns),MemoriaUso(bytes)`
+   - para `S`, a segunda coluna recebe o indice encontrado (`indexOf`).
+
+## 7) Arquivos de saida
+
+- Temporarios por iteracao:
+  - `data/results/temp/arquivo_<n>.csv`
+- Resultado final consolidado pelo App:
+  - `data/results/ArrayList/result_<nome_arquivo_entrada>.csv`
+
+## 8) Geracao dos graficos
+
+Script de grafico:
+
+`scripts/generatorGraph/ArrayList/ordemDeCrescimento.py`
+
+Ele le estes arquivos fixos:
+- `data/results/ArrayList/resultOrdemDeAdicao.csv`
+- `data/results/ArrayList/resultOrdemDeBusca.csv`
+- `data/results/ArrayList/resultCrescente_n100000_I50_R0_S50.csv`
+
+### 8.1 Instalar dependencias Python
+
 ```bash
-mvn exec:java -Dexec.mainClass=dev.ProjetoEDA.bench.BenchArrayList -Dexec.args='{"OrdemBusca":true},crescente_n100000_I50_R0_S50.csv,data/results/ArrayList/result_manual.csv'
+pip install pandas matplotlib
 ```
 
-## Saidas geradas
+### 8.2 Preparar os CSVs esperados pelo script
 
-- Temporarios por iteracao: `data/results/temp/arquivo_<n>.csv`
-- Resultado final do app: `data/results/ArrayList/result_<nome_do_arquivo_entrada>`
+Se necessario, renomeie/copie seus resultados gerados pelo App para esses nomes.
 
-Formato da saida:
-```text
-Operacao,TamanhoEntrada,TempoExecucao(ns),MemoriaUso(bytes)
+### 8.3 Executar o script
+
+```bash
+python scripts/generatorGraph/ArrayList/ordemDeCrescimento.py
 ```
 
-## Estrutura principal
+O script abre 3 janelas (uma por grafico), usando `plt.show()`.
+
+## 9) Estrutura principal
 
 ```text
 src/main/java/dev/ProjetoEDA/
@@ -153,19 +175,22 @@ src/main/java/dev/ProjetoEDA/
   bench/BenchArrayList.java
   estruturas/arraylist/ArrayList.java
 
+scripts/generatorScriptsArrayList/
+  gerarDadosRandom.sh
+  gerarDadosOrdemCrescente.sh
+
+scripts/generatorGraph/ArrayList/
+  ordemDeCrescimento.py
+
 data/entradas/ArrayList/
   *.csv
 
 data/results/
   temp/
   ArrayList/
-
-scripts/generatorScriptsArrayList/
-  gerarDadosOrdemCrescente.sh
-  gerarDadosRandom.sh
 ```
 
-## Comandos uteis
+## 10) Comandos uteis
 
 ```bash
 mvn clean

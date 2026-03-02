@@ -19,7 +19,7 @@ public class BenchArrayList {
      * executa cada operação no ArrayList, registra os tempos de execução e uso de memória,
      * e grava os resultados em um arquivo CSV de saída.
      * 
-     * @param args Argumentos passados pela linha de comando, que incluem o JSON de configuração e o nome do arquivo de entrada e saída.
+     * @param args Argumentos passados pela linha de comando, que incluem o nome do arquivo de entrada e saída.
      * @throws IOException Caso ocorra algum erro na leitura ou escrita de arquivos.
      */
    
@@ -153,7 +153,6 @@ public class BenchArrayList {
      * Realiza a operação indicada no ArrayList.
      * 
      * Este método executa a operação solicitada (inserção, remoção ou busca) no ArrayList, de acordo com os parâmetros fornecidos.
-     * Ele também respeita as flags de ordem de adição e de busca, quando aplicável.
      * 
      * @param lista A lista em que a operação será realizada.
      * @param operacao O tipo de operação a ser executada ("I" para inserção, "R" para remoção, "S" para busca).

@@ -41,7 +41,17 @@ public class App {
         System.out.println("  mvn exec:java -Papp \"-Dexec.args=arraylist crescente_n100000_I50_R0_S50.csv\"");
         System.out.println("==============================================================");
     }
-
+    /**
+     * Executa o benchmark selecionado para a estrutura especificada.
+     * 
+     * Realiza múltiplas iterações do benchmark informado, gera arquivos
+     * temporários com os resultados de cada execução e, ao final,
+     * calcula a mediana dos arquivos gerados para produzir o resultado final.
+     *
+     * @param benchmark Nome ou identificador do benchmark a ser executado.
+     * @param arquivoEntradaPath Caminho ou nome do arquivo de entrada contendo as operações.
+     * @throws Exception Caso ocorra erro durante a execução do benchmark ou no processamento dos arquivos temporários.
+     */
     private static void executarBenchmark(String benchmark, String arquivoEntradaPath) throws Exception {
         switch (benchmark) {
             case "arraylist":
@@ -65,6 +75,12 @@ public class App {
         }
     }
 
+    /**
+     * Calcula a mediana a partir dos X arquivos gerados pelo benchmark.
+     * 
+     * @param arquivos Lista dos caminhos dos arquivos gerados.
+     * @throws IOException Caso ocorra algum erro ao ler os arquivos.
+     */
     private static void calcularMedianaDosArquivos(List<String> arquivos, String pathSaida) throws IOException {
         if (arquivos == null || arquivos.isEmpty()) return;
 
