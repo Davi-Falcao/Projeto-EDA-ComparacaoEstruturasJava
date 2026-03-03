@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.LinkedList;
 
-public class BST {
+public class BST {  
 
     private Node root;
     private int size;
