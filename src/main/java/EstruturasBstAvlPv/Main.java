@@ -29,7 +29,7 @@ public class Main {
                     long start = System.nanoTime();
                  
                     // test a ser medido
-                    test1(tokens);
+                    testBst(tokens);
                 
                     long end = System.nanoTime();
                     long memoryAfter = rt.totalMemory() - rt.freeMemory();
@@ -48,25 +48,31 @@ public class Main {
 
 
                 
-                System.out.println("PriorityQueue crescente 10^6 75%Insertion 25%Remove " + (obsTime[14]) + " " + (obsMemory[14]));
+                System.out.println("BST crescente 10^6 75%Insertion 25%Remove " + (obsTime[14]) + " " + (obsMemory[14]));
             }
 
         } catch (IOException ioe) {}
 
     }
 
-    private static void test1(String[] v){
-        PriorityQueue hp = new PriorityQueue();
+    private static void testBst(String[] v) {
+    BST bst = new BST();
 
-        for(int i = 0; i < v.length; i++){
-            if(v[i].equals("I")){
-                hp.add(Integer.parseInt(v[i+1]));
-                i++;
+    for (int i = 0; i < v.length; i++) {
+        String op = v[i];
 
-            }else if(v[i].equals("R")) hp.remove();
-        }
+        if (op.equals("I")) {
+            int x = Integer.parseInt(v[++i]);
+            bst.add(x);
+
+        } else if (op.equals("R")) {
+            int x = Integer.parseInt(v[++i]);
+            bst.remove(x);
+
+        } else if (op.equals("S")) {
+            int x = Integer.parseInt(v[++i]);
+            bst.search(x);
+            }
+        }    
     }
-
-
 }
-
