@@ -4,47 +4,45 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.LinkedList;
 
-public class BST {  
+public class BST implements Estrutura {
 
     private Node root;
     private int size;
-    
+
     public boolean isEmpty() {
         return this.root == null;
     }
 
+    @Override
     public void add(int element) {
         this.size += 1;
-        if (isEmpty())
+
+        if (isEmpty()) {
             this.root = new Node(element);
-        else {
-            
-            Node aux = this.root;
-            
-            while (aux != null) {
-                
-                if (element < aux.value) {
-                    if (aux.left == null) { 
-                        Node newNode = new Node(element);
-                        aux.left = newNode;
-                        newNode.parent = aux;
-                        return;
-                    }
-                    
-                    aux = aux.left;
-                } else {
-                    if (aux.right == null) { 
-                        Node newNode = new Node(element);
-                        aux.right = newNode;
-                        newNode.parent = aux;
-                        return;
-                    }
-                    
-                    aux = aux.right;
+            return;
+        }
+
+        Node aux = this.root;
+
+        while (aux != null) {
+            if (element < aux.value) {
+                if (aux.left == null) {
+                    Node newNode = new Node(element);
+                    aux.left = newNode;
+                    newNode.parent = aux;
+                    return;
                 }
+                aux = aux.left;
+            } else {
+                if (aux.right == null) {
+                    Node newNode = new Node(element);
+                    aux.right = newNode;
+                    newNode.parent = aux;
+                    return;
+                }
+                aux = aux.right;
             }
         }
-        
     }
 
     public Node min() {
@@ -59,11 +57,11 @@ public class BST {
 
     public Node max() {
         if (isEmpty()) return null;
-        
+
         Node node = this.root;
-        while(node.right != null)
+        while (node.right != null)
             node = node.right;
-        
+
         return node;
     }
 
@@ -74,48 +72,44 @@ public class BST {
 
     public Node predecessor(Node node) {
         if (node == null) return null;
-        
+
         if (node.left != null)
             return max(node.left);
         else {
             Node aux = node.parent;
-            
+
             while (aux != null && aux.value > node.value)
                 aux = aux.parent;
-            
+
             return aux;
         }
     }
 
     public Node sucessor(Node node) {
         if (node == null) return null;
-        
+
         if (node.right != null)
             return min(node.right);
         else {
             Node aux = node.parent;
-            
+
             while (aux != null && aux.value < node.value)
                 aux = aux.parent;
-            
+
             return aux;
         }
     }
 
     public void recursiveAdd(int element) {
-        
         if (isEmpty())
             this.root = new Node(element);
-        else {
-            Node aux = this.root;
-            recursiveAdd(aux, element);
-        }
+        else
+            recursiveAdd(this.root, element);
+
         this.size += 1;
-        
     }
 
     private void recursiveAdd(Node node, int element) {
-        
         if (element < node.value) {
             if (node.left == null) {
                 Node newNode = new Node(element);
@@ -133,20 +127,19 @@ public class BST {
             }
             recursiveAdd(node.right, element);
         }
-        
     }
 
+    @Override
     public void remove(int value) {
-        Node toRemove = search(value);
+        Node toRemove = searchNode(value);
         if (toRemove != null) {
-            remove(toRemove);
+            removeNode(toRemove);
             this.size -= 1;
         }
-        
     }
-    
-    private void remove(Node toRemove) {
-        
+
+    private void removeNode(Node toRemove) {
+
         if (toRemove.isLeaf()) {
             if (toRemove == this.root)
                 this.root = null;
@@ -156,9 +149,9 @@ public class BST {
                 else
                     toRemove.parent.right = null;
             }
-        
+
         } else if (toRemove.hasOnlyLeftChild()) {
-            if (toRemove == this.root)  {
+            if (toRemove == this.root) {
                 this.root = toRemove.left;
                 this.root.parent = null;
             } else {
@@ -168,6 +161,7 @@ public class BST {
                 else
                     toRemove.parent.right = toRemove.left;
             }
+
         } else if (toRemove.hasOnlyRightChild()) {
             if (toRemove == this.root) {
                 this.root = toRemove.right;
@@ -179,43 +173,50 @@ public class BST {
                 else
                     toRemove.parent.right = toRemove.right;
             }
-            
+
         } else {
             Node sucessor = sucessor(toRemove);
             toRemove.value = sucessor.value;
-            remove(sucessor);
+            removeNode(sucessor);
         }
-            
     }
 
-   public Node search(int element) {
-    Node aux = this.root;
+    // ======= IMPLEMENTAÇÃO DA INTERFACE: search(boolean) =======
 
-    while (aux != null) {
-        if (element == aux.value) return aux;
-        aux = (element < aux.value) ? aux.left : aux.right;
+    @Override
+    public boolean search(int element) {
+        return searchNode(element) != null;
     }
 
-    return null;
-}
+    // seu search antigo (Node) renomeado
+    public Node searchNode(int element) {
+        Node aux = this.root;
+
+        while (aux != null) {
+            if (element == aux.value) return aux;
+            aux = (element < aux.value) ? aux.left : aux.right;
+        }
+
+        return null;
+    }
 
     public Node recursiveSearch(int element) {
         return recursiveSearch(this.root, element);
     }
-    
+
     private Node recursiveSearch(Node node, int element) {
         if (node == null) return null;
         if (element == node.value) return node;
         if (element < node.value) return recursiveSearch(node.left, element);
         else return recursiveSearch(node.right, element);
     }
-    
+
     public int height() {
         return height(this.root);
     }
-    
+
     private int height(Node node) {
-        if(node == null) return -1;
+        if (node == null) return -1;
         else return 1 + Math.max(height(node.left), height(node.right));
     }
 
@@ -241,7 +242,6 @@ public class BST {
             System.out.println(node.value);
             inOrder(node.right);
         }
-        
     }
 
     public void posOrder() {
@@ -254,57 +254,54 @@ public class BST {
             posOrder(node.right);
             System.out.println(node.value);
         }
-        
     }
-    
+
     public ArrayList<Integer> bfs() {
-        ArrayList<Integer> list = new ArrayList<Integer>();
-        Deque<Node> queue = new LinkedList<Node>();
-        
+        ArrayList<Integer> list = new ArrayList<>();
+        Deque<Node> queue = new LinkedList<>();
+
         if (!isEmpty()) {
             queue.addLast(this.root);
             while (!queue.isEmpty()) {
                 Node current = queue.removeFirst();
-                
                 list.add(current.value);
-                
-                if(current.left != null) 
+
+                if (current.left != null)
                     queue.addLast(current.left);
-                if(current.right != null) 
-                    queue.addLast(current.right);   
+                if (current.right != null)
+                    queue.addLast(current.right);
             }
         }
         return list;
     }
 
+    @Override
     public int size() {
         return this.size;
     }
-    
-}
 
+    // recomendo deixar Node como classe interna para encapsular,
+    // mas mantive o mínimo de mudança.
+    static class Node {
+        int value;
+        Node left;
+        Node right;
+        Node parent;
 
-class Node {
-    
-    int value;
-    Node left;
-    Node right;
-    Node parent;
-    
-    Node(int v) {
-        this.value = v;
-    }
+        Node(int v) {
+            this.value = v;
+        }
 
-    public boolean hasOnlyLeftChild() {
-        return (this.left != null && this.right == null);
-    }
-    
-    public boolean hasOnlyRightChild() {
-        return (this.left == null && this.right != null);
-    }
+        public boolean hasOnlyLeftChild() {
+            return (this.left != null && this.right == null);
+        }
 
-    public boolean isLeaf() {
-        return this.left == null && this.right == null;
+        public boolean hasOnlyRightChild() {
+            return (this.left == null && this.right != null);
+        }
+
+        public boolean isLeaf() {
+            return this.left == null && this.right == null;
+        }
     }
-    
 }

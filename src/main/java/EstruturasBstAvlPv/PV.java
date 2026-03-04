@@ -1,17 +1,20 @@
 package EstruturasBstAvlPv;
 
-
-public class PV {
+public class PV implements Estrutura {
 
     private NodePv root;
-    private NodePv nil;
+    private final NodePv nil;
+    private int size;
 
     public PV() {
         nil = new NodePv(0);
-        nil.color = 0; 
+        nil.color = 0;
         nil.left = nil;
         nil.right = nil;
+        nil.parent = nil;
+
         root = nil;
+        size = 0;
     }
 
     private class NodePv {
@@ -19,14 +22,14 @@ public class PV {
         NodePv parent;
         NodePv left;
         NodePv right;
-        int color; 
+        int color; // 0 = preto, 1 = vermelho
 
         public NodePv(int value) {
             this.value = value;
             this.parent = nil;
             this.left = nil;
             this.right = nil;
-            this.color = 1; 
+            this.color = 1; // novo nó começa vermelho
         }
     }
 
@@ -102,13 +105,12 @@ public class PV {
                     rightRotate(k.parent.parent);
                 }
             }
-            if (k == root) {
-                break;
-            }
+            if (k == root) break;
         }
         root.color = 0;
     }
 
+    // ======== Seu insert original (mantido) ========
     public void insert(int key) {
         NodePv node = new NodePv(key);
         NodePv y = nil;
@@ -116,30 +118,21 @@ public class PV {
 
         while (x != nil) {
             y = x;
-            if (node.value < x.value) {
-                x = x.left;
-            } else {
-                x = x.right;
-            }
+            if (node.value < x.value) x = x.left;
+            else x = x.right;
         }
 
         node.parent = y;
-        if (y == nil) {
-            root = node;
-        } else if (node.value < y.value) {
-            y.left = node;
-        } else {
-            y.right = node;
-        }
+        if (y == nil) root = node;
+        else if (node.value < y.value) y.left = node;
+        else y.right = node;
 
         if (node.parent == nil) {
             node.color = 0;
             return;
         }
 
-        if (node.parent.parent == nil) {
-            return;
-        }
+        if (node.parent.parent == nil) return;
 
         fixInsert(node);
     }
@@ -149,13 +142,33 @@ public class PV {
     }
 
     private NodePv searchTreeHelper(NodePv node, int key) {
-        if (node == nil || key == node.value) {
-            return node;
-        }
-
-        if (key < node.value) {
-            return searchTreeHelper(node.left, key);
-        }
+        if (node == nil || key == node.value) return node;
+        if (key < node.value) return searchTreeHelper(node.left, key);
         return searchTreeHelper(node.right, key);
+    }
+
+    // ======== Implementação da interface Estrutura ========
+
+    @Override
+    public void add(int x) {
+        insert(x);
+        size++;
+    }
+
+    @Override
+    public void remove(int x) {
+        // Ainda não implementado na sua PV (delete + fixDelete).
+        // Para benchmark de 100% insertion, isso já serve.
+        // Quando você implementar delete, substitui aqui.
+    }
+
+    @Override
+    public boolean search(int x) {
+        return searchTree(x) != nil;
+    }
+
+    @Override
+    public int size() {
+        return size;
     }
 }

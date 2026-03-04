@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.LinkedList;
 
-public class AVL {
+public class AVL implements Estrutura {
 
     private Node root;
     private int size;
@@ -106,7 +106,15 @@ public class AVL {
         x.parent = y;
     }
 
-    public Node search(int element) {
+    // ======= SEARCH para interface (boolean) =======
+
+    @Override
+    public boolean search(int element) {
+        return searchNode(element) != null;
+    }
+
+    // seu search antigo (Node) renomeado
+    public Node searchNode(int element) {
 
         Node aux = this.root;
 
@@ -128,6 +136,7 @@ public class AVL {
         return this.root == null;
     }
 
+    @Override
     public void add(int element) {
 
         if (isEmpty()) {
@@ -189,9 +198,10 @@ public class AVL {
         }
     }
 
+    @Override
     public void remove(int value) {
 
-        Node toRemove = search(value);
+        Node toRemove = searchNode(value);
 
         if (toRemove == null)
             return;
@@ -261,22 +271,16 @@ public class AVL {
     }
 
     public Node min() {
-
         Node node = root;
-
         while (node.left != null)
             node = node.left;
-
         return node;
     }
 
     public Node max() {
-
         Node node = root;
-
         while (node.right != null)
             node = node.right;
-
         return node;
     }
 
@@ -288,7 +292,6 @@ public class AVL {
         Node parent = node.parent;
 
         while (parent != null && node == parent.left) {
-
             node = parent;
             parent = parent.parent;
         }
@@ -304,7 +307,6 @@ public class AVL {
         Node parent = node.parent;
 
         while (parent != null && node == parent.right) {
-
             node = parent;
             parent = parent.parent;
         }
@@ -339,18 +341,19 @@ public class AVL {
         return list;
     }
 
-private Node min(Node node) {
-    if (node == null) return null;
-    while (node.left != null) node = node.left;
-    return node;
-}
+    private Node min(Node node) {
+        if (node == null) return null;
+        while (node.left != null) node = node.left;
+        return node;
+    }
 
-private Node max(Node node) {
-    if (node == null) return null;
-    while (node.right != null) node = node.right;
-    return node;
-}
+    private Node max(Node node) {
+        if (node == null) return null;
+        while (node.right != null) node = node.right;
+        return node;
+    }
 
+    @Override
     public int size() {
         return size;
     }
