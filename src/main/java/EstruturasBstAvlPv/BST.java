@@ -188,19 +188,16 @@ public class BST {
             
     }
 
-    public Node search(int element) {
-        
-        Node aux = this.root;
-        
-        while (aux != null) {   
-            if (aux.value == element) return aux;
-            if (element < aux.value) aux = aux.left;
-            if (element > aux.value) aux = aux.right;
-        }
-        
-        return null;
+   public Node search(int element) {
+    Node aux = this.root;
 
+    while (aux != null) {
+        if (element == aux.value) return aux;
+        aux = (element < aux.value) ? aux.left : aux.right;
     }
+
+    return null;
+}
 
     public Node recursiveSearch(int element) {
         return recursiveSearch(this.root, element);

@@ -1,4 +1,4 @@
-package dev.ProjetoEDA.estruturas.binarysearchtrees;
+package EstruturasBstAvlPv;
 
 import java.util.ArrayList;
 import java.util.Deque;
@@ -30,7 +30,7 @@ public class AVL {
     }
 
     private int height(Node node) {
-        if (node == null) return 0;
+        if (node == null) return -1;
         return 1 + Math.max(height(node.left), height(node.right));
     }
 
@@ -39,17 +39,19 @@ public class AVL {
     }
 
     private void rotate(Node des) {
-        if (des == null) return;
 
         if (balance(des) >= 2) {
-            if (balance(des.left) >= 1) {
+
+            if (balance(des.left) >= 0) {
                 rotacaoDireita(des);
             } else {
                 rotacaoEsquerda(des.left);
                 rotacaoDireita(des);
             }
+
         } else if (balance(des) <= -2) {
-            if (balance(des.right) <= -1) {
+
+            if (balance(des.right) <= 0) {
                 rotacaoEsquerda(des);
             } else {
                 rotacaoDireita(des.right);
@@ -59,52 +61,64 @@ public class AVL {
     }
 
     private void rotacaoDireita(Node n) {
+
         Node x = n;
-        Node y = n.left;
+        Node y = x.left;
 
         x.left = y.right;
-        if (y.right != null) y.right.parent = x;
 
-        y.right = x;
+        if (y.right != null)
+            y.right.parent = x;
+
         y.parent = x.parent;
 
-        if (x.parent != null) {
-            if (x.parent.left == x) x.parent.left = y;
-            else x.parent.right = y;
-        } else {
+        if (x.parent == null)
             this.root = y;
-        }
+        else if (x == x.parent.left)
+            x.parent.left = y;
+        else
+            x.parent.right = y;
 
+        y.right = x;
         x.parent = y;
     }
 
     private void rotacaoEsquerda(Node n) {
+
         Node x = n;
-        Node y = n.right;
+        Node y = x.right;
 
         x.right = y.left;
-        if (y.left != null) y.left.parent = x;
 
-        y.left = x;
+        if (y.left != null)
+            y.left.parent = x;
+
         y.parent = x.parent;
 
-        if (x.parent != null) {
-            if (x.parent.left == x) x.parent.left = y;
-            else x.parent.right = y;
-        } else {
+        if (x.parent == null)
             this.root = y;
-        }
+        else if (x == x.parent.left)
+            x.parent.left = y;
+        else
+            x.parent.right = y;
 
+        y.left = x;
         x.parent = y;
     }
 
     public Node search(int element) {
+
         Node aux = this.root;
 
         while (aux != null) {
-            if (aux.value == element) return aux;
-            if (element < aux.value) aux = aux.left;
-            if (element > aux.value) aux = aux.right;
+
+            if (element == aux.value)
+                return aux;
+
+            if (element < aux.value)
+                aux = aux.left;
+            else
+                aux = aux.right;
         }
 
         return null;
@@ -115,244 +129,230 @@ public class AVL {
     }
 
     public void add(int element) {
-        this.size += 1;
+
         if (isEmpty()) {
             this.root = new Node(element);
-        } else {
-            Node aux = this.root;
+            size++;
+            return;
+        }
 
-            while (aux != null) {
-                if (element < aux.value) {
-                    if (aux.left == null) {
-                        Node newNode = new Node(element);
-                        aux.left = newNode;
-                        newNode.parent = aux;
-                        Node dblc = balanceado(newNode);
-                        if (dblc != null) rotate(dblc);
-                        return;
-                    }
+        Node aux = this.root;
 
-                    aux = aux.left;
-                } else {
-                    if (aux.right == null) {
-                        Node newNode = new Node(element);
-                        aux.right = newNode;
-                        newNode.parent = aux;
-                        Node dblc = balanceado(newNode);
-                        if (dblc != null) rotate(dblc);
-                        return;
-                    }
+        while (true) {
 
-                    aux = aux.right;
+            if (element < aux.value) {
+
+                if (aux.left == null) {
+
+                    Node newNode = new Node(element);
+                    aux.left = newNode;
+                    newNode.parent = aux;
+
+                    size++;
+
+                    rebalanceUp(newNode);
+
+                    return;
                 }
+
+                aux = aux.left;
+
+            } else {
+
+                if (aux.right == null) {
+
+                    Node newNode = new Node(element);
+                    aux.right = newNode;
+                    newNode.parent = aux;
+
+                    size++;
+
+                    rebalanceUp(newNode);
+
+                    return;
+                }
+
+                aux = aux.right;
             }
         }
     }
 
-    private Node balanceado(Node n) {
-        if (n == null) return null;
+    private void rebalanceUp(Node node) {
 
-        if (Math.abs(balance(n)) >= 2) {
-            return n;
+        Node current = node;
+
+        while (current != null) {
+
+            rotate(current);
+
+            current = current.parent;
         }
-        return balanceado(n.parent);
+    }
+
+    public void remove(int value) {
+
+        Node toRemove = search(value);
+
+        if (toRemove == null)
+            return;
+
+        Node parent = toRemove.parent;
+
+        removeNode(toRemove);
+
+        size--;
+
+        rebalanceUp(parent);
+    }
+
+    private void removeNode(Node node) {
+
+        if (node.isLeaf()) {
+
+            if (node == root)
+                root = null;
+            else if (node == node.parent.left)
+                node.parent.left = null;
+            else
+                node.parent.right = null;
+
+        } else if (node.hasOnlyLeftChild()) {
+
+            Node child = node.left;
+
+            if (node == root) {
+                root = child;
+                child.parent = null;
+            } else {
+
+                if (node == node.parent.left)
+                    node.parent.left = child;
+                else
+                    node.parent.right = child;
+
+                child.parent = node.parent;
+            }
+
+        } else if (node.hasOnlyRightChild()) {
+
+            Node child = node.right;
+
+            if (node == root) {
+                root = child;
+                child.parent = null;
+            } else {
+
+                if (node == node.parent.left)
+                    node.parent.left = child;
+                else
+                    node.parent.right = child;
+
+                child.parent = node.parent;
+            }
+
+        } else {
+
+            Node sucessor = sucessor(node);
+
+            node.value = sucessor.value;
+
+            removeNode(sucessor);
+        }
     }
 
     public Node min() {
-        if (isEmpty()) return null;
-        return min(this.root);
-    }
 
-    private Node min(Node node) {
-        if (node.left == null) return node;
-        else return min(node.left);
+        Node node = root;
+
+        while (node.left != null)
+            node = node.left;
+
+        return node;
     }
 
     public Node max() {
-        if (isEmpty()) return null;
 
-        Node node = this.root;
+        Node node = root;
+
         while (node.right != null)
             node = node.right;
 
         return node;
     }
 
-    private Node max(Node node) {
-        if (node.right == null) return node;
-        else return max(node.right);
-    }
-
     public Node predecessor(Node node) {
-        if (node == null) return null;
 
         if (node.left != null)
             return max(node.left);
-        else {
-            Node aux = node.parent;
 
-            while (aux != null && aux.value > node.value)
-                aux = aux.parent;
+        Node parent = node.parent;
 
-            return aux;
+        while (parent != null && node == parent.left) {
+
+            node = parent;
+            parent = parent.parent;
         }
+
+        return parent;
     }
 
     public Node sucessor(Node node) {
-        if (node == null) return null;
 
         if (node.right != null)
             return min(node.right);
-        else {
-            Node aux = node.parent;
 
-            while (aux != null && aux.value < node.value)
-                aux = aux.parent;
+        Node parent = node.parent;
 
-            return aux;
-        }
-    }
+        while (parent != null && node == parent.right) {
 
-    public void recursiveAdd(int element) {
-        if (isEmpty()) {
-            this.root = new Node(element);
-        } else {
-            Node aux = this.root;
-            recursiveAdd(aux, element);
-        }
-        this.size += 1;
-    }
-
-    private void recursiveAdd(Node node, int element) {
-        if (element < node.value) {
-            if (node.left == null) {
-                Node newNode = new Node(element);
-                node.left = newNode;
-                newNode.parent = node;
-                return;
-            }
-            recursiveAdd(node.left, element);
-        } else {
-            if (node.right == null) {
-                Node newNode = new Node(element);
-                node.right = newNode;
-                newNode.parent = node;
-                return;
-            }
-            recursiveAdd(node.right, element);
-        }
-    }
-
-    public void remove(int value) {
-        Node toRemove = search(value);
-        if (toRemove != null) {
-            remove(toRemove);
-            this.size -= 1;
-        }
-    }
-
-    private void remove(Node toRemove) {
-        if (toRemove.isLeaf()) {
-            if (toRemove == this.root)
-                this.root = null;
-            else {
-                if (toRemove.value < toRemove.parent.value)
-                    toRemove.parent.left = null;
-                else
-                    toRemove.parent.right = null;
-            }
-        } else if (toRemove.hasOnlyLeftChild()) {
-            if (toRemove == this.root) {
-                this.root = toRemove.left;
-                this.root.parent = null;
-            } else {
-                toRemove.left.parent = toRemove.parent;
-                if (toRemove.value < toRemove.parent.value)
-                    toRemove.parent.left = toRemove.left;
-                else
-                    toRemove.parent.right = toRemove.left;
-            }
-        } else if (toRemove.hasOnlyRightChild()) {
-            if (toRemove == this.root) {
-                this.root = toRemove.right;
-                this.root.parent = null;
-            } else {
-                toRemove.right.parent = toRemove.parent;
-                if (toRemove.value < toRemove.parent.value)
-                    toRemove.parent.left = toRemove.right;
-                else
-                    toRemove.parent.right = toRemove.right;
-            }
-
-        } else {
-            Node sucessor = sucessor(toRemove);
-            toRemove.value = sucessor.value;
-            remove(sucessor);
+            node = parent;
+            parent = parent.parent;
         }
 
-        if (toRemove.parent != null) {
-            rotate(toRemove.parent);
-        }
-    }
-
-    public void preOrder() {
-        preOrder(this.root);
-    }
-
-    private void preOrder(Node node) {
-        if (node != null) {
-            System.out.println(node.value);
-            preOrder(node.left);
-            preOrder(node.right);
-        }
-    }
-
-    public void inOrder() {
-        inOrder(this.root);
-    }
-
-    private void inOrder(Node node) {
-        if (node != null) {
-            inOrder(node.left);
-            System.out.println(node.value);
-            inOrder(node.right);
-        }
-    }
-
-    public void posOrder() {
-        posOrder(this.root);
-    }
-
-    private void posOrder(Node node) {
-        if (node != null) {
-            posOrder(node.left);
-            posOrder(node.right);
-            System.out.println(node.value);
-        }
+        return parent;
     }
 
     public ArrayList<Integer> bfs() {
-        ArrayList<Integer> list = new ArrayList<Integer>();
-        Deque<Node> queue = new LinkedList<Node>();
 
-        if (!isEmpty()) {
-            queue.addLast(this.root);
-            while (!queue.isEmpty()) {
-                Node current = queue.removeFirst();
+        ArrayList<Integer> list = new ArrayList<>();
 
-                list.add(current.value);
+        if (root == null)
+            return list;
 
-                if(current.left != null) 
-                    queue.addLast(current.left);
-                if(current.right != null) 
-                    queue.addLast(current.right);   
-            }
+        Deque<Node> queue = new LinkedList<>();
+
+        queue.add(root);
+
+        while (!queue.isEmpty()) {
+
+            Node current = queue.remove();
+
+            list.add(current.value);
+
+            if (current.left != null)
+                queue.add(current.left);
+
+            if (current.right != null)
+                queue.add(current.right);
         }
+
         return list;
     }
 
+private Node min(Node node) {
+    if (node == null) return null;
+    while (node.left != null) node = node.left;
+    return node;
+}
+
+private Node max(Node node) {
+    if (node == null) return null;
+    while (node.right != null) node = node.right;
+    return node;
+}
+
     public int size() {
-        return this.size;
+        return size;
     }
 
     class Node {
@@ -362,20 +362,20 @@ public class AVL {
         Node right;
         Node parent;
 
-        Node(int v) {
-            this.value = v;
+        Node(int value) {
+            this.value = value;
         }
 
-        public boolean hasOnlyLeftChild() {
-            return (this.left != null && this.right == null);
+        boolean hasOnlyLeftChild() {
+            return left != null && right == null;
         }
 
-        public boolean hasOnlyRightChild() {
-            return (this.left == null && this.right != null);
+        boolean hasOnlyRightChild() {
+            return left == null && right != null;
         }
 
-        public boolean isLeaf() {
-            return this.left == null && this.right == null;
+        boolean isLeaf() {
+            return left == null && right == null;
         }
     }
 }

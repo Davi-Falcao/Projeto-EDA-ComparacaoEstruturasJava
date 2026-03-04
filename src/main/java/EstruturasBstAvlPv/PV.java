@@ -1,4 +1,4 @@
-package dev.ProjetoEDA.estruturas.binarysearchtrees;
+package EstruturasBstAvlPv;
 
 
 public class PV {
