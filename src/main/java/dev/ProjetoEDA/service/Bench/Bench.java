@@ -1,4 +1,4 @@
-package Bench;
+package dev.ProjetoEDA.service.Bench;
 
 public abstract class Bench {
 
