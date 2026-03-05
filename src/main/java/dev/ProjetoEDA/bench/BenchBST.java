@@ -29,14 +29,13 @@ public class BenchBST {
             lerDados();
 
             try(BufferedWriter writer = new BufferedWriter(new FileWriter(resultFilePath, true))){
-                // Verifica se o arquivo está vazio para adicionar o cabeçalho
                 if (new File(resultFilePath).length() == 0) {
                     writer.write("TamnhoEntrada,Caso,Estrutura,TipoEntrada,TempoExecucao(ns),MemoriaUso(bytes)\n");
                 }
 
                 testsRandom(writer);
-                // testsCrescente(writer);
-                // testsDecresente(writer);
+                testsCrescente(writer);
+                testsDecresente(writer);
             }
 
         }catch(IOException io){
