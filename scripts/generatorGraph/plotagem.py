@@ -2,6 +2,10 @@ import csv
 from collections import defaultdict
 import matplotlib.pyplot as plt
 
+path = "/repository/results/Graphs/"
+
+def mnt_path(filename):
+    return path + filename;
 
 def read_points(csv_path, y_index: int):
     """
@@ -36,6 +40,7 @@ def read_points(csv_path, y_index: int):
 
 
 def plot_time_csv(csv_path, output_path=None):
+    path = mnt_path(output_path)
     data = read_points(csv_path, y_index=3)  # Tempo_ms
 
     plt.figure()
@@ -52,12 +57,13 @@ def plot_time_csv(csv_path, output_path=None):
     plt.tight_layout()
 
     if output_path:
-        plt.savefig(output_path, dpi=200)
+        plt.savefig(path, dpi=200)
     else:
         plt.show()
 
 
 def plot_mem_csv(csv_path, output_path=None, unit="MB"):
+    path = mnt_path(output_path)
     data = read_points(csv_path, y_index=4)  # Memoria_bytes
 
     div = 1
@@ -82,6 +88,6 @@ def plot_mem_csv(csv_path, output_path=None, unit="MB"):
     plt.tight_layout()
 
     if output_path:
-        plt.savefig(output_path, dpi=200)
+        plt.savefig(path, dpi=200)
     else:
         plt.show()
