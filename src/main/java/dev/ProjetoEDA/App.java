@@ -9,11 +9,13 @@ import dev.ProjetoEDA.controller.BenchController;
 public class App {
 
     public static void main(String[] args) throws Exception {
-        if (args.length < 2) {
+        if (args.length == 0) {
+            System.err.println("Nenhum benchmark especificado.");
             exibirMenu();
             return;
         }
 
+        exibirMenu();
         String benchmark = args[0].trim().toLowerCase();
         executarBenchmark(benchmark);
     }
@@ -32,13 +34,8 @@ public class App {
     }
     /**
      * Executa o benchmark selecionado para a estrutura especificada.
-     * 
-     * Realiza múltiplas iterações do benchmark informado, gera arquivos
-     * temporários com os resultados de cada execução e, ao final,
-     * calcula a mediana dos arquivos gerados para produzir o resultado final.
      *
-     * @param benchmark Nome ou identificador do benchmark a ser executado.
-     * @param arquivoEntradaPath Caminho ou nome do arquivo de entrada contendo as operações.
+     * @param benchmark Nome do benchmark a ser executado.
      * @throws Exception Caso ocorra erro durante a execução do benchmark ou no processamento dos arquivos temporários.
      */
     private static void executarBenchmark(String benchmark) {
