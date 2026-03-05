@@ -1,4 +1,4 @@
-package LinkedList.estruturas;
+package LinkedList.dev.ProjetoEDA.model;
 import java.util.NoSuchElementException;
 
 public class LinkedList {
@@ -185,9 +185,9 @@ public class LinkedList {
         if(isEmpty()) return "";
 
         Node aux = this.head;
-        String out = "";
+        StringBuilder out = new StringBuilder();
         while (aux != null) {
-            out += aux.value + ", ";
+            out.append(aux.value).append(", ");
             aux = aux.next;
         }
 

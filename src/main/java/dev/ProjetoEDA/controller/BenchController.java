@@ -6,7 +6,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 
-import dev.ProjetoEDA.model.ArrayList;
+import dev.ProjetoEDA.model.LinkeList;
 
 
 public class BenchController {

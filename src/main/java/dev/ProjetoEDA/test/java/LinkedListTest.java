@@ -1,4 +1,4 @@
-package LinkedList.estruturas;
+package LinkedList.dev.ProjetoEDA.test.java;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
