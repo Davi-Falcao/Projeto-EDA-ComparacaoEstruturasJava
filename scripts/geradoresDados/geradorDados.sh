@@ -6,7 +6,7 @@
 
 OPERACOES=1000000
 WARMUP=0
-VALOR_MAX=1000000
+VALOR_MAX=10000000
 
 #================================
 # MENU DE INTERAÇÃO
@@ -22,6 +22,16 @@ echo "1 - Aleatória"
 echo "2 - Crescente"
 echo "3 - Decrescente"
 read -p "Digite o número da ordem desejada: " ORDEM
+
+if [ "$ORDEM" == "2" ] || [ "$ORDEM" == "3" ]; then
+    read -p "Dados sequencias? (s/n): " SEQ
+    
+    if [ "$SEQ" == "s" ]; then
+        SEQ="S"
+    elif [ "$SEQ" == "n" ]; then
+        SEQ="N"
+    fi
+fi
 
 if [ "$TIPO" == "1" ]; then
     TIPO="ComRepeticao"
@@ -74,18 +84,22 @@ ordenarDados() {
     fi
 }
 
-if [ "$TIPO" == "ComRepeticao" ]; then
-    {
-    for ((i=0; i<OPERACOES; i++)); do
-        VALUE=$((RANDOM % VALOR_MAX))
-        echo "$VALUE"
-    done
-    } | ordenarDados >> "$CSV_FILE"
+if [ "$SEQ" == "S" ]; then
+    seq 0 $((OPERACOES - 1)) | ordenarDados >> "$CSV_FILE"
 else
-    USADOS=$(cat "$CSV_FILE")   
+    if [ "$TIPO" == "ComRepeticao" ]; then
+        {
+        for ((i=0; i<OPERACOES; i++)); do
+            VALUE=$((RANDOM % VALOR_MAX))
+            echo "$VALUE"
+        done
+        } | ordenarDados >> "$CSV_FILE"
+    else
+        USADOS=$(cat "$CSV_FILE")   
 
-    # Gera dados sem repetição
-    seq 0 $((VALOR_MAX-1)) | grep -v -F -x -f <(echo "$USADOS") | shuf -n "$OPERACOES" | ordenarDados >> "$CSV_FILE" 
+        # Gera dados sem repetição
+        seq 0 $((VALOR_MAX-1)) | grep -v -F -x -f <(echo "$USADOS") | shuf -n "$OPERACOES" | ordenarDados >> "$CSV_FILE" 
+    fi
 fi
 
 echo "Arquivo com dados gerado: $CSV_FILE"
