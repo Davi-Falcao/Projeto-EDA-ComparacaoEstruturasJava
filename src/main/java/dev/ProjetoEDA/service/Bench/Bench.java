@@ -2,6 +2,12 @@ package dev.ProjetoEDA.service.Bench;
 
 public abstract class Bench {
 
+    protected static List<Integer> random;
+    protected static List<Integer> crescente;
+    protected static List<Integer> decresente;
+    protected static  List<Integer> entradas;
+
+
     // ---------------- 10^3 RANDOM ----------------
 
     public abstract void n1e3Random50Insert25Remove25Search();
@@ -43,5 +49,32 @@ public abstract class Bench {
     public abstract void n1e6Decrescente75Insert25Remove();
     public abstract void n1e6Decrescente75Insert25Search();
     public abstract void n1e6Decrescente100Insert();
+
+    protected abstract void experimento(int entrada, String test, String tipo, BufferedWriter writer);
+
+    protected  static void lerDados() throws IOException{
+        String caminhoRandom = "data/entradas/dados/random.csv";
+        String caminhoCrescente = "data/entradas/dados/crescente.csv";
+        String caminhoDecresente = "data/entradas/dados/decresente.csv";
+        String caminhoentradas = "data/entradas/tamanho/entradas.csv";
+
+        random = Files.lines(Paths.get(caminhoRandom)).map(Integer::valueOf).collect(Collectors.toList());
+        crescente = Files.lines(Paths.get(caminhoCrescente)).map(Integer::valueOf).collect(Collectors.toList());
+        decresente = Files.lines(Paths.get(caminhoDecresente)).map(Integer::valueOf).collect(Collectors.toList());
+        entradas = Files.lines(Paths.get(caminhoentradas)).map(Integer::valueOf).collect(Collectors.toList());
+    }
+
+    protected static long calcularMediana(long[] valores) {
+        Arrays.sort(valores);
+
+        int n = valores.length;
+        if (n % 2 == 1) {
+            return valores[n / 2]; 
+        } else {
+            long mediana = (valores[n / 2 - 1] + valores[n / 2]) / 2;  
+            return mediana;
+        }
+    }
+
 
 }

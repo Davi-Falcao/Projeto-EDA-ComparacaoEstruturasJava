@@ -1,7 +1,6 @@
 package dev.ProjetoEDA.bench;
 import java.io.BufferedWriter;
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -12,8 +11,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import dev.ProjetoEDA.model.Heap;
 
-public class ModeloBech {
+public class BechHeap {
 
     private static List<Integer> random;
     private static List<Integer> crescente;
@@ -24,30 +24,30 @@ public class ModeloBech {
 
     public static void main(String[] args){
 
-        String resultFilePath = "repository/results/..../result....csv"; 
+        String resultFilePath = "src/main/java/dev/ProjetoEDA/repository/results/result.csv"; 
 
         try{
+            lerDados();
 
-        lerDados();
-
-        BufferedWriter writer = new BufferedWriter(new FileWriter(resultFilePath, true));
-
-        // Verifica se o arquivo está vazio para adicionar o cabeçalho
-        if (new File(resultFilePath).length() == 0) {
+        try(BufferedWriter writer = new BufferedWriter(new FileWriter(resultFilePath, true))){
+             // Verifica se o arquivo está vazio para adicionar o cabeçalho
+            if (new File(resultFilePath).length() == 0) {
             writer.write("TamnhoEntrada,Caso,Estrutura,TipoEntrada,TempoExecucao(ns),MemoriaUso(bytes)\n");
+            }
+
+            testsRandom(writer);
+            //rodaCrescente();
+            //rodaDecresente();
         }
 
-        rodaAleatorio(writer);
-        //rodaCrescente();
-        //rodaDecresente();
-
-        writer.close();
-        }catch(IOException io){}
+        }catch(IOException io){
+            io.printStackTrace();
+        }
 
         System.out.println("Resultados gravados em: " + resultFilePath);
     }
 
-    private static void rodaAleatorio(BufferedWriter aux) throws IOException{
+    private static void testsRandom(BufferedWriter aux) throws IOException{
 
         for(int i : entradas){
             run100I0R(i, "random", aux);
@@ -68,9 +68,9 @@ public class ModeloBech {
       private static void run75I25R(int entrada, String tipo, BufferedWriter writer){
         experimento(entrada, "75I25R", writer, tipo);
     }
-
+    
     private static void experimento(int entrada, String test, BufferedWriter writer, String tipo){
-        List<> dados = null;
+        List<Integer> dados = null;
 
         switch (tipo) {
             case "random":
@@ -78,15 +78,14 @@ public class ModeloBech {
                 break;
             case "crescente":
                 dados = crescente;
+                break;
             default:
                 dados = decresente;
                 break;
         }
-
         long[] tempos = new long[REPETICOES];
         long[] memorias = new long[REPETICOES];
 
-            
             for (int s = 0; s < REPETICOES; s++) {
                 long memoriaAntes = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
                 long tempoAntes = System.nanoTime();
@@ -95,14 +94,15 @@ public class ModeloBech {
 
                 switch (test) {
                     case "100I0R":
-                        //hp.add();
-                        //a implementar..
+                       for(int i = 0; i < entrada; i ++) hp.add(dados.get(i));
                         break;
                     case "50I50R":
-                        //a implementar..
+                        for(int i = 0; i < (int)(entrada*0.5); i ++) hp.add(dados.get(i));
+                        for(int i = 0; i < (int)(entrada*0.5); i++) hp.remove();
                         break;
                     case "75I25R":
-                        // a implementar..
+                        for(int i = 0; i < (int)(entrada*0.75); i ++) hp.add(dados.get(i));
+                        for(int i = 0; i < (int)(entrada*0.25); i++) hp.remove();
                         break;
                     default:
                         //a implementar
@@ -121,12 +121,22 @@ public class ModeloBech {
 
             long tempoMediana = calcularMediana(tempos);
             long memoriaMediana = calcularMediana(memorias);
-
-            writer.write(test + "," + entrada  + "," + tipo + "," + tempoMediana + "," + memoriaMediana + "\n");
+            try{
+                writer.write(
+                    entrada + "," +          // TamanhoEntrada
+                    test + "," +             // Caso
+                    "Heap" + "," +           // Estrutura
+                    tipo + "," +             // TipoEntrada
+                    tempoMediana + "," +     // TempoExecucao(ns)
+                    memoriaMediana + "\n"    // MemoriaUso(bytes)
+                );
+                
+            }catch(IOException io){
+            }
 
         }
 
-    public static long calcularMediana(long[] valores) {
+        private static long calcularMediana(long[] valores) {
         Arrays.sort(valores);
 
         int n = valores.length;
@@ -139,10 +149,10 @@ public class ModeloBech {
     }
 
     private static void lerDados() throws IOException{
-        String caminhoRandom = "data/entradas/dados/random.csv";
-        String caminhoCrescente = "data/entradas/dados/crescente.csv";
-        String caminhoDecresente = "data/entradas/dados/decresente.csv";
-        String caminhoentradas = "data/entradas/tamanho/entradas.csv";
+        String caminhoRandom = "src/main/java/dev/ProjetoEDA/repository/entry/entradaRandomUnica.csv";
+        String caminhoCrescente = "src/main/java/dev/ProjetoEDA/repository/entry/entradaCrescenteUnica.csv";
+        String caminhoDecresente = "src/main/java/dev/ProjetoEDA/repository/entry/entradaDecrescenteUnica.csv";
+        String caminhoentradas = "src/main/java/dev/ProjetoEDA/repository/entry/tamanhoEntrada.csv";
 
         random = Files.lines(Paths.get(caminhoRandom)).map(Integer::valueOf).collect(Collectors.toList());
         crescente = Files.lines(Paths.get(caminhoCrescente)).map(Integer::valueOf).collect(Collectors.toList());
@@ -150,14 +160,5 @@ public class ModeloBech {
         entradas = Files.lines(Paths.get(caminhoentradas)).map(Integer::valueOf).collect(Collectors.toList());
     }
 
-    private static void registrarResultado(BufferedWriter writer, String operacao, int tamanhoEntrada, long tempoExecucao, long memoriaUso, int indexFound) throws IOException {
-        if (operacao.equals("S")){
-
-            writer.write(operacao + "," + indexFound + "," + tempoExecucao + "," + memoriaUso + "\n");
-            return;
-        }
-        writer.write(operacao + "," + tamanhoEntrada + "," + tempoExecucao + "," + memoriaUso + "\n");
-    }
-
-
+    
 }
