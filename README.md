@@ -1,6 +1,6 @@
 # Projeto EDA - Comparacao de Estruturas em Java
 
-Projeto para benchmark de operacoes em estruturas de dados (atualmente `ArrayList` customizado), medindo por operacao:
+Projeto para benchmark de operacoes em estruturas de dados, medindo por operacao:
 - `TempoExecucao(ns)`
 - `MemoriaUso(bytes)`
 

@@ -1,4 +1,4 @@
-package dev.ProjetoEDA.estruturas.arraylist;
+package dev.ProjetoEDA.model;
 
 /**
  * Implementação de uma estrutura de dados ArrayList utilizando um array dinâmico de inteiros.
