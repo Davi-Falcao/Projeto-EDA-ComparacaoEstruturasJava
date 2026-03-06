@@ -57,7 +57,7 @@ public abstract class BenchAbstrato {
         }
     }
 
-    protected void executaCaso(List<Integer> dados, int entrada, String test) {
+    protected void executarCaso(List<Integer> dados, int entrada, String test) {
         switch (test) {
             case "100I0R":
                 executarI100_R0_S0(dados, entrada);
