@@ -7,7 +7,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
 
-public class BenchBST extends BenchAbstrato {
+public class BenchBST extends Bench {
 
     @Override
     public void run() {

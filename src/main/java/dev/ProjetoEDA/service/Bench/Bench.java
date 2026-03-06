@@ -2,78 +2,125 @@ package dev.ProjetoEDA.service.Bench;
 
 public abstract class Bench {
 
-    protected static List<Integer> random;
+     protected static List<Integer> random;
     protected static List<Integer> crescente;
-    protected static List<Integer> decresente;
-    protected static  List<Integer> entradas;
+    protected static List<Integer> decrescente;
+    protected static List<Integer> entradas;
 
+    protected static final int REPETICOES = 18;
 
-    // ---------------- 10^3 RANDOM ----------------
+    public abstract void run();
 
-    public abstract void n1e3Random50Insert25Remove25Search();
-    public abstract void n1e3Random75Insert25Remove();
-    public abstract void n1e3Random75Insert25Search();
-    public abstract void n1e3Random100Insert();
+    protected abstract void test(BufferedWriter aux) throws IOException;
 
-    // ---------------- 10^3 CRESCENTE ----------------
+    protected void experimento(int entrada, String estrutura, String test, BufferedWriter writer, String tipo) {
+        List<Integer> dados = getDados(tipo);
 
-    public abstract void n1e3Crescente50Insert25Remove25Search();
-    public abstract void n1e3Crescente75Insert25Remove();
-    public abstract void n1e3Crescente75Insert25Search();
-    public abstract void n1e3Crescente100Insert();
+        long[] tempos = new long[REPETICOES];
+        long[] memorias = new long[REPETICOES];
 
-    // ---------------- 10^3 DECRESCENTE ----------------
+        for (int s = 0; s < REPETICOES; s++) {
+            long memoriaAntes = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+            long tempoAntes = System.nanoTime();
 
-    public abstract void n1e3Decrescente50Insert25Remove25Search();
-    public abstract void n1e3Decrescente75Insert25Remove();
-    public abstract void n1e3Decrescente75Insert25Search();
-    public abstract void n1e3Decrescente100Insert();
+            executarCaso(dados, entrada, test);
 
-    // ---------------- 10^6 RANDOM ----------------
+            long memoriaDepois = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+            long tempoDepois = System.nanoTime();
 
-    public abstract void n1e6Random50Insert25Remove25Search();
-    public abstract void n1e6Random75Insert25Remove();
-    public abstract void n1e6Random75Insert25Search();
-    public abstract void n1e6Random100Insert();
+            tempos[s] = tempoDepois - tempoAntes;
+            memorias[s] = memoriaDepois - memoriaAntes;
+        }
 
-    // ---------------- 10^6 CRESCENTE ----------------
+        long tempoMediana = calcularMediana(tempos);
+        long memoriaMediana = calcularMediana(memorias);
 
-    public abstract void n1e6Crescente50Insert25Remove25Search();
-    public abstract void n1e6Crescente75Insert25Remove();
-    public abstract void n1e6Crescente75Insert25Search();
-    public abstract void n1e6Crescente100Insert();
-
-    // ---------------- 10^6 DECRESCENTE ----------------
-
-    public abstract void n1e6Decrescente50Insert25Remove25Search();
-    public abstract void n1e6Decrescente75Insert25Remove();
-    public abstract void n1e6Decrescente75Insert25Search();
-    public abstract void n1e6Decrescente100Insert();
-
-    protected abstract void experimento(int entrada, String test, String tipo, BufferedWriter writer);
-
-    protected  static void lerDados() throws IOException{
-        String caminhoRandom = "data/entradas/dados/random.csv";
-        String caminhoCrescente = "data/entradas/dados/crescente.csv";
-        String caminhoDecresente = "data/entradas/dados/decresente.csv";
-        String caminhoentradas = "data/entradas/tamanho/entradas.csv";
-
-        random = Files.lines(Paths.get(caminhoRandom)).map(Integer::valueOf).collect(Collectors.toList());
-        crescente = Files.lines(Paths.get(caminhoCrescente)).map(Integer::valueOf).collect(Collectors.toList());
-        decresente = Files.lines(Paths.get(caminhoDecresente)).map(Integer::valueOf).collect(Collectors.toList());
-        entradas = Files.lines(Paths.get(caminhoentradas)).map(Integer::valueOf).collect(Collectors.toList());
+        try {
+            writer.write(
+                entrada + "," +
+                test + "," +
+                estrutura + "," +
+                tipo + "," +
+                tempoMediana + "," +
+                memoriaMediana + "\n"
+            );
+        } catch (IOException io) {
+            io.printStackTrace();
+        }
     }
 
-    protected static long calcularMediana(long[] valores) {
+    protected void executarCaso(List<Integer> dados, int entrada, String test) {
+        switch (test) {
+            case "100I0R0S":
+                executarI100_R0_S0(dados, entrada);
+                break;
+
+            case "50I50R0S":
+                executarI50_R50_S0(dados, entrada);
+                break;
+
+            case "75I25R0S":
+                executarI75_R25_S0(dados, entrada);
+                break;
+
+            case "50I25R25S":
+                executarI50_R25_S25(dados, entrada);
+                break;
+
+            case "50I0R50S":
+                executarI50_R0_S50(dados, entrada);
+                break;
+
+            default:
+                throw new IllegalArgumentException("Caso de teste inválido: " + test);
+        }
+    }
+
+    protected abstract void executarI100_R0_S0(List<Integer> dados, int n);
+    protected abstract void executarI50_R50_S0(List<Integer> dados, int n);
+    protected abstract void executarI75_R25_S0(List<Integer> dados, int n);
+    protected abstract void executarI50_R25_S25(List<Integer> dados, int n);
+    protected abstract void executarI50_R0_S50(List<Integer> dados, int n);
+
+    protected List<Integer> getDados(String dado) {
+        if (dado.equals("random")) return random;
+        if (dado.equals("crescente")) return crescente;
+        if(dado.equals("decrescente")) return decrescente;
+        return entradas;
+    }
+
+    protected long calcularMediana(long[] valores) {
         Arrays.sort(valores);
 
         int n = valores.length;
         if (n % 2 == 1) {
-            return valores[n / 2]; 
+            return valores[n / 2];
         } else {
-            long mediana = (valores[n / 2 - 1] + valores[n / 2]) / 2;  
-            return mediana;
+            return (valores[n / 2 - 1] + valores[n / 2]) / 2;
         }
+    }
+
+    protected void lerDados() throws IOException {
+        String caminhoRandom = "src/main/java/dev/ProjetoEDA/repository/entry/entradaRandomUnica.csv";
+        String caminhoCrescente = "src/main/java/dev/ProjetoEDA/repository/entry/entradaCrescenteUnica.csv";
+        String caminhoDecrescente = "src/main/java/dev/ProjetoEDA/repository/entry/entradaDecrescenteUnica.csv";
+        String caminhoEntradas = "src/main/java/dev/ProjetoEDA/repository/entry/tamanhoEntrada.csv";
+
+        random = Files.lines(Paths.get(caminhoRandom))
+                .map(Integer::valueOf)
+                .collect(Collectors.toList());
+
+        crescente = Files.lines(Paths.get(caminhoCrescente))
+                .map(Integer::valueOf)
+                .collect(Collectors.toList());
+
+        decrescente = Files.lines(Paths.get(caminhoDecrescente))
+                .map(Integer::valueOf)
+                .collect(Collectors.toList());
+
+        entradas = Files.lines(Paths.get(caminhoEntradas))
+                .map(Integer::valueOf)
+                .collect(Collectors.toList());
     }
 
 

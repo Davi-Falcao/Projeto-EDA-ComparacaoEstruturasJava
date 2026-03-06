@@ -1,13 +1,14 @@
 package dev.ProjetoEDA.bench;
 
 import dev.ProjetoEDA.model.Heap;
+import dev.ProjetoEDA.service.Bench.*;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
 
-public class BenchHeap extends BenchAbstrato {
+public class BenchHeap extends Bench {
 
     @Override
     public void run() {
