@@ -1,243 +1,123 @@
 package dev.ProjetoEDA.bench;
 
+import dev.ProjetoEDA.model.BST;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
-import dev.ProjetoEDA.model.BST;
+public class BenchBST extends BenchAbstrato {
 
-public class BenchBST {
-
-    private static List<Integer> random;
-    private static List<Integer> crescente;
-    private static List<Integer> decresente;
-    private static List<Integer> entradas;
-
-    private static final int REPETICOES = 18;
-
-    public static void main(String[] args){
-
+    @Override
+    public void run() {
         String resultFilePath = "src/main/java/dev/ProjetoEDA/repository/results/result.csv";
 
-        try{
-            lerDados();
+        try {
+            super.lerDados();
 
-            try(BufferedWriter writer = new BufferedWriter(new FileWriter(resultFilePath, true))){
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(resultFilePath, true))) {
+
                 if (new File(resultFilePath).length() == 0) {
-                    writer.write("TamnhoEntrada,Caso,Estrutura,TipoEntrada,TempoExecucao(ns),MemoriaUso(bytes)\n");
+                    writer.write("TamanhoEntrada,Caso,Estrutura,TipoEntrada,TempoExecucao(ns),MemoriaUso(bytes)\n");
                 }
 
-                testsRandom(writer);
-                testsCrescente(writer);
-                testsDecresente(writer);
+                test(writer);
             }
 
-        }catch(IOException io){
+        } catch (IOException io) {
             io.printStackTrace();
         }
 
         System.out.println("Resultados gravados em: " + resultFilePath);
     }
 
-    private static void testsRandom(BufferedWriter aux) throws IOException{
+    @Override
+    protected void test(BufferedWriter aux) throws IOException {
+        String[] ordens = new String[]{"random", "crescente", "decrescente"};
+        String[] casos = new String[]{"100I0R0S", "50I50R0S", "75I25R0S","50I25R25S", "50I0R50S"};
 
-        for(int i : entradas){
-            run100I0R(i, "random", aux);
-            run50I50R(i, "random", aux);
-            run75I25R(i, "random", aux);
-
-            run50I50R0S(i, "random", aux);   
-            run50I25R25S(i, "random", aux);  
-            run50I0R50S(i, "random", aux); 
-        }
-
-    }
-
- 
-    private static void testsCrescente(BufferedWriter aux) throws IOException{
-        for(int i : entradas){
-            run100I0R(i, "crescente", aux);
-            run50I50R(i, "crescente", aux);
-            run75I25R(i, "crescente", aux);
-
-            run50I50R0S(i, "crescente", aux);
-            run50I25R25S(i, "crescente", aux);
-            run50I0R50S(i, "crescente", aux);
-        }
-    }
-
-   
-    private static void testsDecresente(BufferedWriter aux) throws IOException{
-        for(int i : entradas){
-            run100I0R(i, "decresente", aux);
-            run50I50R(i, "decresente", aux);
-            run75I25R(i, "decresente", aux);
-
-            run50I50R0S(i, "decresente", aux);
-            run50I25R25S(i, "decresente", aux);
-            run50I0R50S(i, "decresente", aux);
-        }
-    }
-
-    private static void run100I0R(int entrada, String tipo, BufferedWriter writer){
-        experimento(entrada, "100I0R", writer, tipo);
-    }
-
-    private static void run50I50R(int entrada, String tipo, BufferedWriter writer){
-        experimento(entrada, "50I50R", writer, tipo);
-    }
-
-    private static void run75I25R(int entrada, String tipo, BufferedWriter writer){
-        experimento(entrada, "75I25R", writer, tipo);
-    }
-
-    private static void run50I50R0S(int entrada, String tipo, BufferedWriter writer){
-        experimento(entrada, "50I50R0S", writer, tipo);
-    }
-
-    private static void run50I25R25S(int entrada, String tipo, BufferedWriter writer){
-        experimento(entrada, "50I25R25S", writer, tipo);
-    }
-
-    private static void run50I0R50S(int entrada, String tipo, BufferedWriter writer){
-        experimento(entrada, "50I0R50S", writer, tipo);
-    }
-
-    private static void experimento(int entrada, String test, BufferedWriter writer, String tipo){
-        List<Integer> dados = null;
-
-        switch (tipo) {
-            case "random":
-                dados = random;
-                break;
-            case "crescente":
-                dados = crescente;
-                break;
-            default:
-                dados = decresente;
-                break;
-        }
-
-        long[] tempos = new long[REPETICOES];
-        long[] memorias = new long[REPETICOES];
-
-        for (int s = 0; s < REPETICOES; s++) {
-            long memoriaAntes = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
-            long tempoAntes = System.nanoTime();
-
-            BST bst = new BST();
-
-            switch (test) {
-
-                case "100I0R":
-                    for(int i = 0; i < entrada; i ++) bst.add(dados.get(i));
-                    break;
-
-                case "50I50R": {
-                    int ins = (int)(entrada * 0.5);
-                    for(int i = 0; i < ins; i ++) bst.add(dados.get(i));
-                    for(int i = 0; i < ins; i++) bst.remove(dados.get(i));
-                    break;
+        for (String ordem : ordens) {
+            for (int i : super.getDados("entradas")) {
+                for (String caso : casos) {
+                    testar(i, ordem, caso, aux);
                 }
-
-                case "75I25R": {
-                    int ins = (int)(entrada * 0.75);
-                    int rem = (int)(entrada * 0.25);
-                    for(int i = 0; i < ins; i ++) bst.add(dados.get(i));
-                    for(int i = 0; i < rem; i++) bst.remove(dados.get(i));
-                    break;
-                }
-
-                case "50I50R0S": {
-                    int ins = (int)(entrada * 0.5);
-                    int rem = (int)(entrada * 0.5);
-
-                    for(int i = 0; i < ins; i++) bst.add(dados.get(i));
-                    for(int i = 0; i < rem; i++) bst.remove(dados.get(i));
-                    break;
-                }
-
-                case "50I25R25S": {
-                    int ins = (int)(entrada * 0.5);
-                    int rem = (int)(entrada * 0.25);
-                    int sea = (int)(entrada * 0.25);
-
-                    for(int i = 0; i < ins; i++) bst.add(dados.get(i));
-                    for(int i = 0; i < rem; i++) bst.remove(dados.get(i));
-
-                    for(int i = 0; i < sea; i++) bst.search(dados.get(rem + i));
-                    break;
-                }
-
-                case "50I0R50S": {
-                    int ins = (int)(entrada * 0.5);
-                    int sea = (int)(entrada * 0.5);
-
-                    for(int i = 0; i < ins; i++) bst.add(dados.get(i));
-
-                    for(int i = 0; i < sea; i++) bst.search(dados.get(i));
-                    break;
-                }
-
-                default:
-                    // a implementar
-                    break;
             }
-
-            long memoriaDepois = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
-            long tempoDepois = System.nanoTime();
-
-            long tempoExecucao = tempoDepois - tempoAntes;
-            long memoriaUso = memoriaDepois - memoriaAntes;
-
-            tempos[s] =  tempoExecucao;
-            memorias[s] =  memoriaUso;
-        }
-
-        long tempoMediana = calcularMediana(tempos);
-        long memoriaMediana = calcularMediana(memorias);
-
-        try{
-            writer.write(
-                entrada + "," +         
-                test + "," +           
-                "BST" + "," +            
-                tipo + "," +            
-                tempoMediana + "," +     
-                memoriaMediana + "\n"    
-            );
-        }catch(IOException io){
-            io.printStackTrace();
         }
     }
 
-    private static long calcularMediana(long[] valores) {
-        Arrays.sort(valores);
+    private void testar(int entrada, String ordem, String caso, BufferedWriter writer) {
+        super.experimento(entrada, "BST", caso, writer, ordem);
+    }
 
-        int n = valores.length;
-        if (n % 2 == 1) {
-            return valores[n / 2];
-        } else {
-            long mediana = (valores[n / 2 - 1] + valores[n / 2]) / 2;
-            return mediana;
+    @Override
+    protected void executarI100_R0_S0(List<Integer> dados, int n) {
+        BST bst = new BST();
+
+        for (int i = 0; i < n; i++) {
+            bst.add(dados.get(i));
         }
     }
 
-    private static void lerDados() throws IOException{
-        String caminhoRandom = "src/main/java/dev/ProjetoEDA/repository/entry/entradaRandomUnica.csv";
-        String caminhoCrescente = "src/main/java/dev/ProjetoEDA/repository/entry/entradaCrescenteUnica.csv";
-        String caminhoDecresente = "src/main/java/dev/ProjetoEDA/repository/entry/entradaDecrescenteUnica.csv";
-        String caminhoentradas = "src/main/java/dev/ProjetoEDA/repository/entry/tamanhoEntrada.csv";
+    @Override
+    protected void executarI50_R50_S0(List<Integer> dados, int n) {
+        BST bst = new BST();
+        int metade = n / 2;
 
-        random = Files.lines(Paths.get(caminhoRandom)).map(Integer::valueOf).collect(Collectors.toList());
-        crescente = Files.lines(Paths.get(caminhoCrescente)).map(Integer::valueOf).collect(Collectors.toList());
-        decresente = Files.lines(Paths.get(caminhoDecresente)).map(Integer::valueOf).collect(Collectors.toList());
-        entradas = Files.lines(Paths.get(caminhoentradas)).map(Integer::valueOf).collect(Collectors.toList());
+        for (int i = 0; i < metade; i++) {
+            bst.add(dados.get(i));
+        }
+        for (int i = 0; i < metade; i++) {
+            bst.remove(dados.get(i));
+        }
+    }
+
+    @Override
+    protected void executarI75_R25_S0(List<Integer> dados, int n) {
+        BST bst = new BST();
+        int insercoes = (int) (n * 0.75);
+        int remocoes = (int) (n * 0.25);
+
+        for (int i = 0; i < insercoes; i++) {
+            bst.add(dados.get(i));
+        }
+        for (int i = 0; i < remocoes; i++) {
+            bst.remove(dados.get(i));
+        }
+    }
+
+    @Override
+    protected void executarI50_R25_S25(List<Integer> dados, int n) {
+        BST bst = new BST();
+        int insercoes = (int) (n * 0.50);
+        int remocoes = (int) (n * 0.25);
+        int procura = (int) (n * 0.25);
+
+        for (int i = 0; i < insercoes; i++) {
+            bst.add(dados.get(i));
+        }
+
+        for (int i = 0; i < procura; i++){
+            bst.search(dados.get(i));
+        }
+
+        for (int i = 0; i < remocoes; i++) {
+            bst.remove(dados.get(i));
+        } 
+    }
+
+    @Override
+    protected void executarI50_R0_S50(List<Integer> dados, int n) {
+        BST bst = new BST();
+        int insercoes = (int) (n * 0.50);
+        int procura = (int) (n * 0.50);
+
+        for (int i = 0; i < insercoes; i++) {
+            bst.add(dados.get(i));
+        }
+
+        for (int i = 0; i < procura; i++){
+            bst.search(dados.get(i));
+        }
     }
 }
