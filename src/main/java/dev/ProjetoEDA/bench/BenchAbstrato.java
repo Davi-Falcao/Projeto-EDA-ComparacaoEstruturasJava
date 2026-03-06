@@ -31,7 +31,7 @@ public abstract class BenchAbstrato {
             long memoriaAntes = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
             long tempoAntes = System.nanoTime();
 
-            executaCaso(dados, entrada, test);
+            executarCaso(dados, entrada, test);
 
             long memoriaDepois = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
             long tempoDepois = System.nanoTime();
@@ -93,7 +93,8 @@ public abstract class BenchAbstrato {
     protected List<Integer> getDados(String dado) {
         if (dado.equals("random")) return random;
         if (dado.equals("crescente")) return crescente;
-        return decrescente;
+        if(dado.equals("decrescente")) return decrescente;
+        return entradas;
     }
 
     protected long calcularMediana(long[] valores) {
