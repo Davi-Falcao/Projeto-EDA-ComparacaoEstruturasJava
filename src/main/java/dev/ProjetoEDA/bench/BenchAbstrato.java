@@ -59,7 +59,7 @@ public abstract class BenchAbstrato {
 
     protected void executarCaso(List<Integer> dados, int entrada, String test) {
         switch (test) {
-            case "100I0R":
+            case "100I0R0S":
                 executarI100_R0_S0(dados, entrada);
                 break;
 
@@ -67,7 +67,7 @@ public abstract class BenchAbstrato {
                 executarI50_R50_S0(dados, entrada);
                 break;
 
-            case "75I25R":
+            case "75I25R0S":
                 executarI75_R25_S0(dados, entrada);
                 break;
 

@@ -35,7 +35,7 @@ public class BenchHeap extends BenchAbstrato {
     @Override
     protected void test(BufferedWriter aux) throws IOException {
         String[] ordens = new String[]{"random", "crescente", "decrescente"};
-        String[] casos = new String[]{"100I0R", "50I50R", "75I25R"};
+        String[] casos = new String[]{"100I0R0S", "50I50R0S", "75I25R0S"};
 
         for (String ordem : ordens) {
             for (int i : super.getDados("entradas")) {
@@ -88,9 +88,11 @@ public class BenchHeap extends BenchAbstrato {
 
     @Override
     protected void executarI50_R25_S25(List<Integer> dados, int n) {
+        return; 
     }
 
     @Override
     protected void executarI50_R0_S50(List<Integer> dados, int n) {
+        return;
     }
 }
