@@ -14,14 +14,7 @@ import dev.ProjetoEDA.model.AVL;
 
 public class BenchAVL {
 
-    private static List<Integer> random;
-    private static List<Integer> crescente;
-    private static List<Integer> decresente;
-    private static List<Integer> entradas;
-
-    private static final int REPETICOES = 18;
-
-    public static void main(String[] args){
+    public static void run(){
 
         String resultFilePath = "src/main/java/dev/ProjetoEDA/repository/results/result.csv";
 
