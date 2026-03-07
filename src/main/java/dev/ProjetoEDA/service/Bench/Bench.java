@@ -1,6 +1,8 @@
 package LinkedList.dev.ProjetoEDA.service.Bench;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -160,4 +162,20 @@ public abstract class Bench {
                 .map(Integer::valueOf)
                 .collect(Collectors.toList());
     }
+
+    // RSS (Resident Set Size) do processo Java em bytes
+    private static long getProcessRssBytes() {
+        try (BufferedReader br = new BufferedReader(new FileReader("/proc/self/status"))) {
+            String s;
+            while ((s = br.readLine()) != null) {
+                if (s.startsWith("VmRSS:")) {
+                    String[] parts = s.trim().split("\\s+");
+                    long kb = Long.parseLong(parts[1]); // vem em kB
+                    return kb * 1024L; // converte pra bytes
+                }
+            }
+        } catch (IOException ignored) {}
+        return -1L;
+    }
+
 }
