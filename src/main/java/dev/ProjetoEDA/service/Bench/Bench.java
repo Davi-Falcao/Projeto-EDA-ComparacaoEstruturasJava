@@ -36,9 +36,7 @@ public abstract class Bench {
 
         for (int s = 0; s < REPETICOES; s++) {
 
-            long memoriaAntes =
-                    Runtime.getRuntime().totalMemory() -
-                    Runtime.getRuntime().freeMemory();
+            long memoriaAntes = getProcessRssBytes();
 
             long tempoAntes = System.nanoTime();
 
@@ -46,9 +44,7 @@ public abstract class Bench {
 
             long tempoDepois = System.nanoTime();
 
-            long memoriaDepois =
-                    Runtime.getRuntime().totalMemory() -
-                    Runtime.getRuntime().freeMemory();
+            long memoriaDepois = getProcessRssBytes();
 
             tempos[s] = tempoDepois - tempoAntes;
             memorias[s] = memoriaDepois - memoriaAntes;
