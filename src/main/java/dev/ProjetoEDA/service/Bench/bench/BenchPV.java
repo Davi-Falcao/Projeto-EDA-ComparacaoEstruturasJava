@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.util.List;
 
 import dev.ProjetoEDA.model.PV;
+import dev.ProjetoEDA.service.Bench.Bench;
 
 public class BenchPV extends Bench {
 

@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.util.List;
 
 import dev.ProjetoEDA.model.ArrayList;
+import dev.ProjetoEDA.service.Bench.Bench;
 
 /**
  * Implementação concreta da classe {@link Bench} responsável
@@ -122,7 +123,7 @@ public class BenchArrayList extends Bench {
         int metade = n / 2;
 
         for (int i = 0; i < metade; i++) {
-            pq.add(dados.get(i));
+            list.add(dados.get(i));
         }
 
         for (int i = 0; i < metade; i++) {
@@ -204,7 +205,7 @@ public class BenchArrayList extends Bench {
 
         // buscas
         for (int i = 0; i < procura; i++){
-            list.search(dados.get(i));
+            list.contains(dados.get(i));
         }
     }
 }
