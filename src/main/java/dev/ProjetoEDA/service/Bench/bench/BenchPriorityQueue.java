@@ -53,7 +53,7 @@ public class BenchPriorityQueue extends Bench {
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(resultFilePath, true))) {
 
                 if (new File(resultFilePath).length() == 0) {
-                    writer.write("TamanhoEntrada,TipoEntrada,Caso,Estrutura,TempoExecucao(ms),MemoriaUso(bytes)\n");
+                    writer.write("TamanhoEntrada,TipoEntrada,Caso,Estrutura,TempoExecucao(ns),MemoriaUso(bytes)\n");
                 }
 
                 test(writer);
