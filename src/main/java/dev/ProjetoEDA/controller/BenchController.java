@@ -1,13 +1,13 @@
 package dev.ProjetoEDA.controller;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-
-import dev.ProjetoEDA.model.LinkeList;
-
+import dev.ProjetoEDA.service.bench.Bench;
+import dev.ProjetoEDA.service.bench.BenchAVL;
+import dev.ProjetoEDA.service.bench.BenchArrayList;
+import dev.ProjetoEDA.service.bench.BenchBST;
+import dev.ProjetoEDA.service.bench.BenchHeap;
+import dev.ProjetoEDA.service.bench.BenchLinkedList;
+import dev.ProjetoEDA.service.bench.BenchPV;
+import dev.ProjetoEDA.service.bench.BenchPriorityQueue;
+;
 
 public class BenchController {
     
@@ -21,31 +21,31 @@ public class BenchController {
     public static void escolherOCaso(String caso) {
         switch (caso) {
             case "arraylist":
-                Estruturas benchArrayList = new benchArrayList();
+                Bench benchArrayList = new BenchArrayList();
                 benchArrayList.run();
                 break;
             case "linkedlist":
-                Estruturas benchLinkedList = new benchLinkedList();
+                Bench benchLinkedList = new BenchLinkedList();
                 benchLinkedList.run();
                 break;
             case "heap":
-                Estruturas benchHeap = new benchHeap();
+                Bench benchHeap = new BenchHeap();
                 benchHeap.run();
                 break;
             case "filaPrioridade":
-                Estruturas benchFilaPrioridade = new benchFilaPrioridade();
+                Bench benchFilaPrioridade = new BenchPriorityQueue();
                 benchFilaPrioridade.run();
                 break;
             case "avl":
-                Estruturas benchAVL = new benchAVL();
+                Bench benchAVL = new BenchAVL();
                 benchAVL.run();
                 break;
             case "bst":
-                Estruturas benchBST = new benchBST();
+                Bench benchBST = new BenchBST();
                 benchBST.run();
                 break;
             case "pv":
-                Estruturas benchPV = new benchPV();
+                Bench benchPV = new BenchPV();
                 benchPV.run();
                 break;
         default:

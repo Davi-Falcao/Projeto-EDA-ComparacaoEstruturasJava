@@ -1,4 +1,4 @@
-package dev.ProjetoEDA.service.Bench.bench;
+package dev.ProjetoEDA.service.bench;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -6,13 +6,13 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
 
-import dev.ProjetoEDA.model.Heap;
-import dev.ProjetoEDA.service.Bench.Bench;
+import dev.ProjetoEDA.model.ArrayList;
+
 /**
  * Implementação concreta da classe {@link Bench} responsável
- * por executar os experimentos de benchmark da estrutura de dados Heap.
+ * por executar os experimentos de benchmark da estrutura de dados ArrayList.
  *
- * Esta classe executa diferentes cenários de operações sobre a Heap
+ * Esta classe executa diferentes cenários de operações sobre a ArrayList
  * utilizando conjuntos de dados previamente carregados.
  * Os resultados de tempo de execução e consumo de memória são registrados
  * em um arquivo CSV para posterior análise e geração de gráficos.
@@ -22,20 +22,22 @@ import dev.ProjetoEDA.service.Bench.Bench;
  * 100I0R0S - 100% inserções
  * 50I50R0S - 50% inserções e 50% remoções
  * 75I25R0S - 75% inserções e 25% remoções
+ * 50I25R25S - 50% inserções, 25% remoções e 25% de busca por elemento
+ * 50I0R50S - 50% inserções e 50% de busca por elemento
  *
  * Os dados utilizados nos testes podem estar em três ordens:
  *
  * random
  * crescente
  * decrescente
- * 
+ *
  * Cada experimento é executado múltiplas vezes para amenizar os ruídos e a atuação do Garbage Collector
  * e a mediana das medições é registrada no arquivo de resultados.
  */
-public class BenchHeap extends Bench {
+public class BenchArrayList extends Bench {
 
     /**
-     * Executa o benchmark da estrutura Heap.
+     * Executa o benchmark da estrutura ArrayList.
      *
      * Este método realiza:
      *
@@ -44,11 +46,11 @@ public class BenchHeap extends Bench {
      * Execução dos testes definidos
      *
      * Os resultados são gravados no arquivo:
-     * {@code repository/results/result.csv}.
+     * {@code repository/results/resultArrayList.csv}.
      */
     @Override
     public void run() {
-        String resultFilePath = "src/main/java/dev/ProjetoEDA/repository/results/resultHeap.csv";
+        String resultFilePath = "src/main/java/dev/ProjetoEDA/repository/results/resultArrayList.csv";
 
         try {
             super.lerDados();
@@ -70,7 +72,7 @@ public class BenchHeap extends Bench {
     }
 
     /**
-     * Executa todos os cenários de teste definidos para a Heap.
+     * Executa todos os cenários de teste definidos para a ArrayList.
      *
      * Para cada tipo de entrada (random, crescente, decrescente) e para
      * cada tamanho de entrada definido no dataset, são executados os
@@ -82,14 +84,12 @@ public class BenchHeap extends Bench {
     @Override
     protected void test(BufferedWriter writer) throws IOException {
         String[] ordens = new String[]{"random", "crescente", "decrescente"};
-        String[] casos = new String[]{"100I0R0S", "50I50R0S", "75I25R0S"};
+        String[] casos = new String[]{"100I0R0S", "50I50R0S", "75I25R0S", "50I25R25S", "50I0R50S" };
 
         for (String ordem : ordens) {
             for (int n : super.getDados("entradas")) {
                 for (String caso : casos) {
-
-                    super.experimento(n, ordem, caso, "Heap", writer);
-            
+                    super.experimento(n, ordem, caso, "ArrayList", writer);
                 }
             }
         }
@@ -103,10 +103,10 @@ public class BenchHeap extends Bench {
      */
     @Override
     protected void executarI100_R0_S0(List<Integer> dados, int n) {
-        Heap hp = new Heap();
+        ArrayList list = new ArrayList();
 
         for (int i = 0; i < n; i++) {
-            hp.add(dados.get(i));
+            list.add(dados.get(i));
         }
     }
 
@@ -118,14 +118,15 @@ public class BenchHeap extends Bench {
      */
     @Override
     protected void executarI50_R50_S0(List<Integer> dados, int n) {
-        Heap hp = new Heap();
+        ArrayList list = new ArrayList();
         int metade = n / 2;
 
         for (int i = 0; i < metade; i++) {
-            hp.add(dados.get(i));
+            list.add(dados.get(i));
         }
+
         for (int i = 0; i < metade; i++) {
-            hp.remove();
+            list.remove(0);
         }
     }
 
@@ -137,41 +138,73 @@ public class BenchHeap extends Bench {
      */
     @Override
     protected void executarI75_R25_S0(List<Integer> dados, int n) {
-        Heap hp = new Heap();
+       ArrayList list = new ArrayList();
+
         int insercoes = (int) (n * 0.75);
         int remocoes = (int) (n * 0.25);
 
         for (int i = 0; i < insercoes; i++) {
-            hp.add(dados.get(i));
+            list.add(dados.get(i));
         }
+
         for (int i = 0; i < remocoes; i++) {
-            hp.remove();
+            list.remove(0);
         }
     }
 
     /**
      * Cenário com 50% inserções, 25% remoções e 25% buscas.
      *
-     * Este cenário não é utilizado para  Heap.
      *
      * @param dados conjunto de dados de entrada
      * @param n tamanho da entrada
      */
     @Override
     protected void executarI50_R25_S25(List<Integer> dados, int n) {
-        return; 
+       ArrayList list = new ArrayList();
+
+        int insercoes = (int) (n * 0.50);
+        int remocoes = (int) (n * 0.25);
+        int procura = (int) (n * 0.25);
+
+        // inserções
+        for (int i = 0; i < insercoes; i++) {
+            list.add(dados.get(i));
+        }
+
+        // buscas
+        for (int i = 0; i < procura; i++){
+            list.get(dados.get(i));
+        }
+
+        // remoções
+        for (int i = 0; i < remocoes; i++) {
+            list.remove(0);
+        } 
     }
 
     /**
      * Cenário com 50% inserções, 0% remoções e 50% buscas.
      *
-     * Este cenário não é utilizado para  Heap.
      *
      * @param dados conjunto de dados de entrada
      * @param n tamanho da entrada
      */
     @Override
     protected void executarI50_R0_S50(List<Integer> dados, int n) {
-        return;
+        ArrayList list = new ArrayList();
+
+        int insercoes = (int) (n * 0.50);
+        int procura = (int) (n * 0.50);
+
+        // inserções
+        for (int i = 0; i < insercoes; i++) {
+            list.add(dados.get(i));
+        }
+
+        // buscas
+        for (int i = 0; i < procura; i++){
+            list.contains(dados.get(i));
+        }
     }
 }

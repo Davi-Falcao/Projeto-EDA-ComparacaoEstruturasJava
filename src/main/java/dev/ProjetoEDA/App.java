@@ -11,27 +11,13 @@ public class App {
     public static void main(String[] args) throws Exception {
         if (args.length == 0) {
             System.err.println("Nenhum benchmark especificado.");
-            exibirMenu();
             return;
         }
 
-        exibirMenu();
         String benchmark = args[0].trim().toLowerCase();
         executarBenchmark(benchmark);
     }
 
-    private static void exibirMenu() {
-        System.out.println("==============================================================");
-        System.out.println("        SELETOR DE BENCHMARKS - EDA COMPARAÇÃO JAVA          ");
-        System.out.println("==============================================================");
-        System.out.println("Uso:");
-        System.out.println("  mvn exec:java -Papp -Dexec.args=\"arraylist\"");
-        System.out.println("Exemplo:");
-        System.out.println("  mvn exec:java -Papp -Dexec.args=\"arraylist\"");
-        System.out.println("PowerShell:");
-        System.out.println("  mvn exec:java -Papp \"-Dexec.args=arraylist \"");
-        System.out.println("==============================================================");
-    }
     /**
      * Executa o benchmark selecionado para a estrutura especificada.
      *

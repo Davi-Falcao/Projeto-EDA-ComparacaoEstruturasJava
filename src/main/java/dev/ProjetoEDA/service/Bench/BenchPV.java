@@ -1,4 +1,4 @@
-package dev.ProjetoEDA.service.Bench.bench;
+package dev.ProjetoEDA.service.bench;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.util.List;
 
 import dev.ProjetoEDA.model.PV;
-import dev.ProjetoEDA.service.Bench.Bench;
 
 public class BenchPV extends Bench {
 

@@ -1,12 +1,12 @@
-package dev.ProjetoEDA.service.Bench.bench;
+package dev.ProjetoEDA.service.bench;
 
-import LinkedList.dev.ProjetoEDA.model.LinkedList;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
-//Documentar
+
+import dev.ProjetoEDA.model.LinkedList;
 
 public class BenchLinkedList extends Bench {
     @Override

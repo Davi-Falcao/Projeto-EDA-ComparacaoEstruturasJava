@@ -1,4 +1,5 @@
-package LinkedList.dev.ProjetoEDA.model;
+package dev.ProjetoEDA.model;
+
 import java.util.NoSuchElementException;
 
 public class LinkedList {

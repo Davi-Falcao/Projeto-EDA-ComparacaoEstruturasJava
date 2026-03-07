@@ -1,4 +1,4 @@
-package LinkedList.dev.ProjetoEDA.service.Bench;
+package dev.ProjetoEDA.service.bench;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
