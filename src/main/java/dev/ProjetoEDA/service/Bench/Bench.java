@@ -50,13 +50,13 @@ public abstract class Bench {
         long[] memorias = new long[REPETICOES];
 
         for (int s = 0; s < REPETICOES; s++) {
-            long memoriaAntes = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+            long memoriaAntes = getProcessRssBytes();
             long tempoAntes = System.nanoTime();
 
             executarCaso(dados, tamanhoEntrada, casoTest);
 
-            long memoriaDepois = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
             long tempoDepois = System.nanoTime();
+            long memoriaDepois = getProcessRssBytes();
 
             tempos[s] = tempoDepois - tempoAntes;
             memorias[s] = memoriaDepois - memoriaAntes;
