@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.util.List;
 
 import dev.ProjetoEDA.model.BST;
-import dev.ProjetoEDA.service.Bench.Bench;
+
 
 /**
  * Classe responsável por executar os benchmarks da estrutura BST.

@@ -29,7 +29,7 @@ import dev.ProjetoEDA.service.Bench.Bench;
  * crescente
  * decrescente
  * 
- * Cada experimento é executado múltiplas vezes para amenizar os ruídos e o Garbage Collector
+ * Cada experimento é executado múltiplas vezes para amenizar os ruídos e a atuação do Garbage Collector
  * e a mediana das medições é registrada no arquivo de resultados.
  */
 public class BenchHeap extends Bench {
