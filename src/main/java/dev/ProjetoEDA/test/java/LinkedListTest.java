@@ -1,5 +1,6 @@
 package LinkedList.dev.ProjetoEDA.test.java;
 
+import LinkedList.dev.ProjetoEDA.model.LinkedList;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
 import static org.junit.jupiter.api.Assertions.*;

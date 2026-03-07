@@ -1,4 +1,4 @@
-package dev.ProjetoEDA.service.Bench;
+package LinkedList.dev.ProjetoEDA.service.Bench;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
