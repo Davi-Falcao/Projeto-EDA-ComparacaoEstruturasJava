@@ -1,13 +1,13 @@
-package dev.ProjetoEDA.bench;
+package dev.ProjetoEDA.service.Bench.bench;
 
-import dev.ProjetoEDA.model.Heap;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
 
-
+import dev.ProjetoEDA.model.Heap;
+import dev.ProjetoEDA.service.Bench.Bench;
 /**
  * Implementação concreta da classe {@link Bench} responsável
  * por executar os experimentos de benchmark da estrutura de dados Heap.

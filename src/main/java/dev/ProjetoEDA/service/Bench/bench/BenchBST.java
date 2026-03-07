@@ -1,11 +1,13 @@
-package dev.ProjetoEDA.bench;
+package dev.ProjetoEDA.service.Bench.bench;
 
-import dev.ProjetoEDA.model.BST;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
+
+import dev.ProjetoEDA.model.BST;
+import dev.ProjetoEDA.service.Bench.Bench;
 
 /**
  * Classe responsável por executar os benchmarks da estrutura BST.
@@ -85,7 +87,7 @@ public class BenchBST extends Bench {
      * @param writer writer utilizado para registrar o resultado
      */
     private void testar(int entrada, String ordem, String caso, BufferedWriter writer) {
-        super.experimento(entrada, "BST", caso, writer, ordem);
+        super.experimento(entrada, ordem, caso, "BST", writer);
     }
 
     /**

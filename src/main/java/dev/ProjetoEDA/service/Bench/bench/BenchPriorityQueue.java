@@ -1,9 +1,13 @@
-package dev.ProjetoEDA.bench;
+package dev.ProjetoEDA.service.Bench.bench;
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.List;
 
 import dev.ProjetoEDA.model.PriorityQueue;
-import java.io.*;
-import java.util.*;
-
+import dev.ProjetoEDA.service.Bench.Bench;
 
 /**
  * Implementação concreta da classe {@link Bench} responsável
@@ -25,7 +29,7 @@ import java.util.*;
  * random
  * crescente
  * decrescente
- * 
+ *
  * Cada experimento é executado múltiplas vezes para amenizar os ruídos e o Garbage Collector
  * e a mediana das medições é registrada no arquivo de resultados.
  */
@@ -84,9 +88,7 @@ public class BenchPriorityQueue extends Bench {
         for (String ordem : ordens) {
             for (int n : super.getDados("entradas")) {
                 for (String caso : casos) {
-
                     super.experimento(n, ordem, caso, "PriorityQueue", writer);
-            
                 }
             }
         }
@@ -100,7 +102,7 @@ public class BenchPriorityQueue extends Bench {
      */
     @Override
     protected void executarI100_R0_S0(List<Integer> dados, int n) {
-        PiorityQueue pq = new PriorityQueue();
+        PriorityQueue pq = new PriorityQueue();
 
         for (int i = 0; i < n; i++) {
             pq.add(dados.get(i));
@@ -115,12 +117,13 @@ public class BenchPriorityQueue extends Bench {
      */
     @Override
     protected void executarI50_R50_S0(List<Integer> dados, int n) {
-        PiorityQueue pq = new PriorityQueue();
+        PriorityQueue pq = new PriorityQueue();
         int metade = n / 2;
 
         for (int i = 0; i < metade; i++) {
             pq.add(dados.get(i));
         }
+
         for (int i = 0; i < metade; i++) {
             pq.remove();
         }
@@ -134,7 +137,7 @@ public class BenchPriorityQueue extends Bench {
      */
     @Override
     protected void executarI75_R25_S0(List<Integer> dados, int n) {
-        PiorityQueue pq = new PriorityQueue();
+        PriorityQueue pq = new PriorityQueue();
 
         int insercoes = (int) (n * 0.75);
         int remocoes = (int) (n * 0.25);
@@ -142,6 +145,7 @@ public class BenchPriorityQueue extends Bench {
         for (int i = 0; i < insercoes; i++) {
             pq.add(dados.get(i));
         }
+
         for (int i = 0; i < remocoes; i++) {
             pq.remove();
         }
@@ -157,13 +161,13 @@ public class BenchPriorityQueue extends Bench {
      */
     @Override
     protected void executarI50_R25_S25(List<Integer> dados, int n) {
-        return; 
+        return;
     }
 
     /**
      * Cenário com 50% inserções, 0% remoções e 50% buscas.
      *
-     * Este cenário não é utilizado para  Priority Queue.
+     * Este cenário não é utilizado para Priority Queue.
      *
      * @param dados conjunto de dados de entrada
      * @param n tamanho da entrada

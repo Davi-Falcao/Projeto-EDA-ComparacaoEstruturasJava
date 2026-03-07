@@ -1,35 +1,34 @@
-package dev.ProjetoEDA.bench;
+package dev.ProjetoEDA.service.Bench.bench;
 
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import dev.ProjetoEDA.model.AVL;
+import dev.ProjetoEDA.service.Bench.Bench;
 
-public class BenchAVL extends BenchAbstrato{
+public class BenchAVL extends Bench {
 
-    public static void run(){
+    @Override
+    public void run() {
 
         String resultFilePath = "src/main/java/dev/ProjetoEDA/repository/results/resultAVL.csv";
 
-        try{
+        try {
             super.lerDados();
 
-            try(BufferedWriter writer = new BufferedWriter(new FileWriter(resultFilePath, true))){
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(resultFilePath, true))) {
+
                 if (new File(resultFilePath).length() == 0) {
-                    writer.write("TamnhoEntrada,Caso,Estrutura,TipoEntrada,TempoExecucao(ns),MemoriaUso(bytes)\n");
+                    writer.write("TamanhoEntrada,Caso,Estrutura,TipoEntrada,TempoExecucao(ns),MemoriaUso(bytes)\n");
                 }
 
-                super.test(writer);
+                test(writer);
             }
 
-        }catch(IOException io){
+        } catch (IOException io) {
             io.printStackTrace();
         }
 
@@ -37,44 +36,109 @@ public class BenchAVL extends BenchAbstrato{
     }
 
     @Override
-     protected void test(BufferedWriter aux) throws IOException{
+    protected void test(BufferedWriter aux) throws IOException {
 
         String[] ordens = new String[]{"random", "crescente", "decrescente"};
 
-        for(String orden : ordens){
+        String[] casos = new String[]{
+                "100I0R0S",
+                "50I50R0S",
+                "75I25R0S",
+                "50I25R25S",
+                "50I0R50S"
+        };
 
-            for(int i : entradas){
-                run100I0R(i, orden, aux);
-                run50I50R(i, orden, aux);
-                run75I25R(i,orden, aux);
+        for (String ordem : ordens) {
+            for (int i : super.getDados("entradas")) {
+                for (String caso : casos) {
+                    testar(i, ordem, caso, aux);
+                }
             }
+        }
     }
 
-    }   
-
-    private void run100I0R(int entrada, String tipo, BufferedWriter writer){
-        experimento(entrada, "AVL", "100I0R", writer, tipo);
+    private void testar(int entrada, String ordem, String caso, BufferedWriter writer) {
+        super.experimento(entrada, ordem, caso, "AVL", writer);
     }
 
-    private  void run50I50R(int entrada, String tipo, BufferedWriter writer){
-        experimento(entrada,"AVL", "50I50R", writer, tipo);
+    @Override
+    protected void executarI100_R0_S0(List<Integer> dados, int n) {
+
+        AVL avl = new AVL();
+
+        for (int i = 0; i < n; i++) {
+            avl.add(dados.get(i));
+        }
     }
 
-    private void run75I25R(int entrada, String tipo, BufferedWriter writer){
-        experimento(entrada,"AVL", "75I25R", writer, tipo);
+    @Override
+    protected void executarI50_R50_S0(List<Integer> dados, int n) {
+
+        AVL avl = new AVL();
+        int metade = n / 2;
+
+        for (int i = 0; i < metade; i++) {
+            avl.add(dados.get(i));
+        }
+
+        for (int i = 0; i < metade; i++) {
+            avl.remove(dados.get(i));
+        }
     }
 
-    private void run50I50R0S(int entrada, String tipo, BufferedWriter writer){
-        experimento(entrada,"AVL", "50I50R0S", writer, tipo);
+    @Override
+    protected void executarI75_R25_S0(List<Integer> dados, int n) {
+
+        AVL avl = new AVL();
+
+        int insercoes = (int) (n * 0.75);
+        int remocoes = (int) (n * 0.25);
+
+        for (int i = 0; i < insercoes; i++) {
+            avl.add(dados.get(i));
+        }
+
+        for (int i = 0; i < remocoes; i++) {
+            avl.remove(dados.get(i));
+        }
     }
 
-    private void run50I25R25S(int entrada, String tipo, BufferedWriter writer){
-        experimento(entrada,"AVL", "50I25R25S", writer, tipo);
+    @Override
+    protected void executarI50_R25_S25(List<Integer> dados, int n) {
+
+        AVL avl = new AVL();
+
+        int insercoes = (int) (n * 0.50);
+        int remocoes = (int) (n * 0.25);
+        int procura = (int) (n * 0.25);
+
+        for (int i = 0; i < insercoes; i++) {
+            avl.add(dados.get(i));
+        }
+
+        for (int i = 0; i < procura; i++) {
+            avl.search(dados.get(i));
+        }
+
+        for (int i = 0; i < remocoes; i++) {
+            avl.remove(dados.get(i));
+        }
     }
 
-    private void run50I0R50S(int entrada, String tipo, BufferedWriter writer){
-        experimento(entrada,"AVL", "50I0R50S", writer, tipo);
+    @Override
+    protected void executarI50_R0_S50(List<Integer> dados, int n) {
+
+        AVL avl = new AVL();
+
+        int insercoes = (int) (n * 0.50);
+        int procura = (int) (n * 0.50);
+
+        for (int i = 0; i < insercoes; i++) {
+            avl.add(dados.get(i));
+        }
+
+        for (int i = 0; i < procura; i++) {
+            avl.search(dados.get(i));
+        }
     }
-
-
 }
