@@ -16,7 +16,7 @@ public class BenchAVL extends BenchAbstrato{
 
     public static void run(){
 
-        String resultFilePath = "src/main/java/dev/ProjetoEDA/repository/results/result.csv";
+        String resultFilePath = "src/main/java/dev/ProjetoEDA/repository/results/resultAVL.csv";
 
         try{
             super.lerDados();

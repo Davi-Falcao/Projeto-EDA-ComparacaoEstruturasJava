@@ -45,7 +45,7 @@ public class BenchPriorityQueue extends Bench {
      */
     @Override
     public void run() {
-        String resultFilePath = "src/main/java/dev/ProjetoEDA/repository/results/result.csv";
+        String resultFilePath = "src/main/java/dev/ProjetoEDA/repository/results/resultPriorityQueue.csv";
 
         try {
             super.lerDados();

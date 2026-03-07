@@ -48,7 +48,7 @@ public class BenchHeap extends Bench {
      */
     @Override
     public void run() {
-        String resultFilePath = "src/main/java/dev/ProjetoEDA/repository/results/result.csv";
+        String resultFilePath = "src/main/java/dev/ProjetoEDA/repository/results/resultHeap.csv";
 
         try {
             super.lerDados();

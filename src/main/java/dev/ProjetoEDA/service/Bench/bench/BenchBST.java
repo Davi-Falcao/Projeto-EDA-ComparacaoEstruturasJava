@@ -25,7 +25,7 @@ public class BenchBST extends Bench {
      */
     @Override
     public void run() {
-        String resultFilePath = "src/main/java/dev/ProjetoEDA/repository/results/result.csv";
+        String resultFilePath = "src/main/java/dev/ProjetoEDA/repository/results/resultBST.csv";
 
         try {
             // lê os dados de entrada utilizados nos experimentos
