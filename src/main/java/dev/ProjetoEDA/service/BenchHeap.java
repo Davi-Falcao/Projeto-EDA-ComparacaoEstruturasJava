@@ -1,7 +1,7 @@
-package dev.ProjetoEDA.service.bench;
+package dev.ProjetoEDA.service;
 
-import dev.ProjetoEDA.model.Heap;
 import dev.ProjetoEDA.model.Estrutura;
+import dev.ProjetoEDA.model.Heap;
 /*
  * Benchmark concreto da estrutura Heap.
  */

@@ -1,13 +1,13 @@
 package dev.ProjetoEDA.controller;
 
-import dev.ProjetoEDA.service.bench.Bench;
-import dev.ProjetoEDA.service.bench.BenchAVL;
-import dev.ProjetoEDA.service.bench.BenchArrayList;
-import dev.ProjetoEDA.service.bench.BenchBST;
-import dev.ProjetoEDA.service.bench.BenchHeap;
-import dev.ProjetoEDA.service.bench.BenchLinkedList;
-import dev.ProjetoEDA.service.bench.BenchPV;
-import dev.ProjetoEDA.service.bench.BenchPriorityQueue;
+import dev.ProjetoEDA.service.Bench;
+import dev.ProjetoEDA.service.BenchAVL;
+import dev.ProjetoEDA.service.BenchArrayList;
+import dev.ProjetoEDA.service.BenchBST;
+import dev.ProjetoEDA.service.BenchHeap;
+import dev.ProjetoEDA.service.BenchLinkedList;
+import dev.ProjetoEDA.service.BenchPV;
+import dev.ProjetoEDA.service.BenchPriorityQueue;
 
 /**
  * Controller responsável por selecionar a estrutura

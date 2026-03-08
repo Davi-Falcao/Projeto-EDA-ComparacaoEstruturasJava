@@ -1,4 +1,4 @@
-package dev.ProjetoEDA.service.bench;
+package dev.ProjetoEDA.service;
 
 import dev.ProjetoEDA.model.ArrayList;
 import dev.ProjetoEDA.model.Estrutura;

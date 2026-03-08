@@ -1,4 +1,4 @@
-package dev.ProjetoEDA.service.bench;
+package dev.ProjetoEDA.service;
 
 import java.io.BufferedWriter;
 import java.io.File;

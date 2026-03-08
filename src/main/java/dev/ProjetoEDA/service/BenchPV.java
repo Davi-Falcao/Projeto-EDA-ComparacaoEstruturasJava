@@ -1,6 +1,6 @@
-package dev.ProjetoEDA.service.bench;
-import dev.ProjetoEDA.model.PV;
+package dev.ProjetoEDA.service;
 import dev.ProjetoEDA.model.Estrutura;
+import dev.ProjetoEDA.model.PV;
 /*
  * Benchmark concreto da estrutura PV.
  */

@@ -24,7 +24,8 @@
 .target/
 .__pycache__/
 .target/*
-
+.idea/
+.__pycache__/*
 
 vscode/
 github/

@@ -1,7 +1,7 @@
-package dev.ProjetoEDA.service.bench;
+package dev.ProjetoEDA.service;
 
-import dev.ProjetoEDA.model.LinkedList;
 import dev.ProjetoEDA.model.Estrutura;
+import dev.ProjetoEDA.model.LinkedList;
 
 /*
 * Benchmark concreto da estrutura de LinkedList.
