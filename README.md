@@ -24,29 +24,29 @@ Compilar o projeto:
 mvn clean compile
 ```
 
-Executar o App (perfil `app`):
+Executar o App:
 
 ```Powershell
 mvn exec:java "-Dexec.java=<nome_do_benchmark> <tam_entrada>"
 ```
 ## 3) Arquivos de resultados são gerados automaticamente
 
-```Os arquivos de resultados são salvos automaticamente em:
+Os arquivos de resultados são salvos automaticamente em:
+```bash
 repository/result/<Nome_estrutura>/
 ```
-
-```padrão do resultado
+padrão do resultado
+```bash
 result_<Nome_da_Estrutura>_<ordem>_<Caso>.csv
 ```
 
 ## 4) Gerar plotagem de gráficos automatica
 
 Executar o a plotagem:
-
-```Powershell
+```bash
 python ./scripts/generate_graphs.py <nome_estrutura>
 ```
-
-```Os graficos são salvos automaticamente em:
+Os graficos são salvos automaticamente em:
+```bash
 repository/result/graphs/<Nome_estrutura>
 ```
