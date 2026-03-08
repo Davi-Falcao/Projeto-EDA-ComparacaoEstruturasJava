@@ -12,19 +12,42 @@ import java.util.stream.Collectors;
 
 import dev.ProjetoEDA.model.Estrutura;
 
+/**
+ * Classe abstrata responsável por definir a estrutura base
+ * para execução de benchmarks das estruturas de dados.
+ *
+ * Esta classe controla:
+ * - carregamento das entradas
+ * - execução dos experimentos
+ * - medição de tempo e memória
+ * - gravação dos resultados em arquivos CSV
+ */
 public abstract class Bench {
 
+    /** Lista de entrada em ordem aleatória. */
     protected static List<Integer> random;
+
+    /** Lista de entrada em ordem crescente. */
     protected static List<Integer> crescente;
+
+    /** Lista de entrada em ordem decrescente. */
     protected static List<Integer> decrescente;
+
+    /** Tamanho total da entrada utilizada no experimento. */
     protected static int entrada;
 
+    /** Número de repetições de cada medição. */
     protected static final int REPETICOES = 10;
 
+    /** Indica se os dados já foram carregados. */
     private static boolean dadosCarregados = false;
 
+    /** Método que inicia a execução do benchmark. */
     public abstract void run();
 
+    /**
+     * Executa o experimento para um determinado caso de teste e ordem de dados.
+     */
     protected void experimento(int tamanhoEntrada, String ordem, String casoTest) {
         List<Integer> dados = getDadosPorOrdem(ordem);
         String resultFilePath = gerarPathArquivoSaida(ordem, casoTest);
@@ -64,12 +87,18 @@ public abstract class Bench {
         }
     }
 
+    /**
+     * Executa todos os casos de teste para uma determinada ordem de dados.
+     */
     protected void executarPorOrdem(String ordem, String[] casos) {
         for (String caso : casos) {
             experimento(entrada, ordem, caso);
         }
     }
 
+    /**
+     * Executa todos os passos anteriores ao passo atual do experimento.
+     */
     protected void executarPassosAte(
             Estrutura estrutura,
             List<Integer> dados,
@@ -82,6 +111,9 @@ public abstract class Bench {
         }
     }
 
+    /**
+     * Executa uma única operação do experimento (insert, remove ou search).
+     */
     protected void executarPasso(
             Estrutura estrutura,
             List<Integer> dados,
@@ -90,6 +122,7 @@ public abstract class Bench {
             String casoTest
     ) {
         switch (casoTest) {
+
             case "100I0R0S":
                 estrutura.add(dados.get(passo));
                 break;
@@ -139,8 +172,12 @@ public abstract class Bench {
         }
     }
 
+    /**
+     * Identifica qual operação está sendo executada no passo atual.
+     */
     protected char descobrirOperacao(String casoTest, int passo, int tamanhoEntrada) {
         switch (casoTest) {
+
             case "100I0R0S":
                 return 'I';
 
@@ -154,13 +191,9 @@ public abstract class Bench {
                 int limiteInsercao50 = (int) (tamanhoEntrada * 0.50);
                 int limiteBusca25 = (int) (tamanhoEntrada * 0.25);
 
-                if (passo < limiteInsercao50) {
-                    return 'I';
-                } else if (passo < limiteInsercao50 + limiteBusca25) {
-                    return 'S';
-                } else {
-                    return 'R';
-                }
+                if (passo < limiteInsercao50) return 'I';
+                else if (passo < limiteInsercao50 + limiteBusca25) return 'S';
+                else return 'R';
 
             case "50I0R50S":
                 return passo < (int) (tamanhoEntrada * 0.50) ? 'I' : 'S';
@@ -170,6 +203,9 @@ public abstract class Bench {
         }
     }
 
+    /**
+     * Retorna os dados de entrada de acordo com a ordem escolhida.
+     */
     protected List<Integer> getDadosPorOrdem(String ordem) {
         switch (ordem) {
             case "random":
@@ -183,6 +219,9 @@ public abstract class Bench {
         }
     }
 
+    /**
+     * Gera o caminho do arquivo CSV onde os resultados serão gravados.
+     */
     protected String gerarPathArquivoSaida(String ordem, String casoTest) {
         String nomeEstrutura = getNomeEstrutura();
 
@@ -191,14 +230,15 @@ public abstract class Bench {
                 + nomeEstrutura + "_" + ordem + "_" + casoTest + ".csv";
     }
 
+    /**
+     * Inicializa o arquivo de saída e escreve o cabeçalho caso esteja vazio.
+     */
     protected static BufferedWriter inicializarArquivoDeSaida(String resultFilePath) throws IOException {
         File file = new File(resultFilePath);
 
         if (!file.exists()) {
             File parent = file.getParentFile();
-            if (parent != null) {
-                parent.mkdirs();
-            }
+            if (parent != null) parent.mkdirs();
             file.createNewFile();
         }
 
@@ -211,6 +251,9 @@ public abstract class Bench {
         return writer;
     }
 
+    /**
+     * Grava uma linha de resultado no arquivo CSV.
+     */
     protected void gravarDadosArquivoSaida(
             String resultFilePath,
             int tamanhoEntrada,
@@ -230,10 +273,11 @@ public abstract class Bench {
         }
     }
 
+    /**
+     * Carrega os arquivos de entrada utilizados nos testes.
+     */
     protected void lerDados() throws IOException {
-        if (dadosCarregados) {
-            return;
-        }
+        if (dadosCarregados) return;
 
         random = carregarInteiros("src/main/java/dev/ProjetoEDA/repository/entry/entradaRandomUnica.csv");
         crescente = carregarInteiros("src/main/java/dev/ProjetoEDA/repository/entry/entradaCrescenteUnica.csv");
@@ -243,6 +287,9 @@ public abstract class Bench {
         dadosCarregados = true;
     }
 
+    /**
+     * Lê um arquivo CSV e retorna os valores inteiros.
+     */
     protected List<Integer> carregarInteiros(String path) throws IOException {
         return Files.readAllLines(Paths.get(path))
                 .stream()
@@ -254,6 +301,9 @@ public abstract class Bench {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Lê um único valor inteiro de um arquivo.
+     */
     protected int carregarInteiroUnico(String path) throws IOException {
         return Files.readAllLines(Paths.get(path))
                 .stream()
@@ -266,6 +316,9 @@ public abstract class Bench {
                 .orElseThrow(() -> new IllegalArgumentException("Arquivo entradas.csv vazio"));
     }
 
+    /**
+     * Calcula a mediana de um conjunto de valores.
+     */
     protected long calcularMediana(long[] valores) {
         int meio = valores.length / 2;
 
@@ -276,12 +329,17 @@ public abstract class Bench {
         return valores[meio];
     }
 
+    /**
+     * Retorna a quantidade de memória utilizada pela JVM.
+     */
     protected long getProcessRssBytes() {
         Runtime runtime = Runtime.getRuntime();
         return runtime.totalMemory() - runtime.freeMemory();
     }
 
+    /** Retorna o nome da estrutura testada. */
     protected abstract String getNomeEstrutura();
 
+    /** Cria uma nova instância da estrutura testada. */
     protected abstract Estrutura criarEstrutura();
 }
