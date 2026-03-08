@@ -2,7 +2,7 @@ package dev.ProjetoEDA.model;
 
 import java.util.NoSuchElementException;
 
-public class LinkedList {
+public class LinkedList implements Estrutura {
     private Node head;
     private Node tail;
     private int size;
@@ -12,9 +12,11 @@ public class LinkedList {
         this.tail = null;
         this.size = 0;
     }
+
     public boolean isEmpty(){
         return this.head == null;
     }
+
     public void addFirst(int value){
         Node newNode = new Node(value);
 
@@ -28,6 +30,7 @@ public class LinkedList {
         }
         size += 1;
     }
+
     public void addLast(int value){
         Node newNode = new Node(value);
 
@@ -41,6 +44,7 @@ public class LinkedList {
         }
         this.size += 1;
     }
+
     public void add(int index, int value){
         if(index < 0 || index > size)
             throw new IndexOutOfBoundsException();
@@ -49,7 +53,6 @@ public class LinkedList {
 
         if(index == 0){
             this.addFirst(value);
-
         } else if (index == size) {
             this.addLast(value);
         } else {
@@ -66,14 +69,22 @@ public class LinkedList {
         }
     }
 
+    @Override
+    public boolean add(int value) {
+        addLast(value);
+        return true;
+    }
+
     public int getFirst() {
         if(isEmpty()) throw new NoSuchElementException();
         return this.head.value;
     }
+
     public int getLast(){
         if(isEmpty()) throw new NoSuchElementException();
         return this.tail.value;
     }
+
     public int get(int index) {
         if(index < 0 || index >= size)
             throw new IndexOutOfBoundsException();
@@ -85,6 +96,7 @@ public class LinkedList {
 
         return aux.value;
     }
+
     public int removeFirst() {
         if(isEmpty()) throw new NoSuchElementException();
 
@@ -100,6 +112,7 @@ public class LinkedList {
         size -= 1;
         return v;
     }
+
     public int removeLast() {
         if(isEmpty()) throw new NoSuchElementException();
 
@@ -115,7 +128,8 @@ public class LinkedList {
         size -= 1;
         return v;
     }
-    public int remove(int index) {
+
+    public int removeAt(int index) {
         if (index < 0 || index >= size)
             throw new IndexOutOfBoundsException();
 
@@ -131,6 +145,12 @@ public class LinkedList {
         size -=1;
         return aux.value;
     }
+
+    @Override
+    public boolean remove(int value){
+        return removeByvalue(value);
+    }
+
     public boolean removeByvalue(int value){
         Node aux = this.head;
         for(int i = 0; i < this.size; i++) {
@@ -149,6 +169,7 @@ public class LinkedList {
         }
         return false;
     }
+
     public int indexOf(int value) {
         Node aux = this.head;
         int index = 0;
@@ -162,9 +183,16 @@ public class LinkedList {
 
         return -1;
     }
+
     public boolean contains(int v){
         return indexOf(v) != -1;
     }
+
+    @Override
+    public boolean search(int value) {
+        return contains(value);
+    }
+
     public int lastIndexOf(int value) {
         if(isEmpty()) return -1;
 
@@ -194,6 +222,7 @@ public class LinkedList {
 
         return out.substring(0, out.length() -2);
     }
+
     public int size() {
         return this.size;
     }

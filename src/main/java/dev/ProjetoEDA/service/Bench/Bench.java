@@ -1,8 +1,8 @@
 package dev.ProjetoEDA.service.bench;
 
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.FileReader;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -10,57 +10,218 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import dev.ProjetoEDA.model.Estrutura;
+
 public abstract class Bench {
 
     protected static List<Integer> random;
     protected static List<Integer> crescente;
     protected static List<Integer> decrescente;
-    protected static List<Integer> entradas;
+    protected static int entrada;
 
-    protected static final int REPETICOES = 18;
+    protected static final int REPETICOES = 10;
+
+    private static boolean dadosCarregados = false;
 
     public abstract void run();
 
-    protected abstract void test(BufferedWriter aux) throws IOException;
+    protected void experimento(int tamanhoEntrada, String ordem, String casoTest) {
+        List<Integer> dados = getDadosPorOrdem(ordem);
+        String resultFilePath = gerarPathArquivoSaida(ordem, casoTest);
 
-    protected void experimento(
+        for (int passo = 1; passo <= tamanhoEntrada; passo++) {
+            long[] tempos = new long[REPETICOES];
+            long[] memorias = new long[REPETICOES];
+            char operacao = descobrirOperacao(casoTest, passo - 1, tamanhoEntrada);
+
+            for (int repeticao = 0; repeticao < REPETICOES; repeticao++) {
+                Estrutura estrutura = criarEstrutura();
+
+                executarPassosAte(estrutura, dados, passo - 1, tamanhoEntrada, casoTest);
+
+                long memoriaAntes = getProcessRssBytes();
+                long tempoAntes = System.nanoTime();
+
+                executarPasso(estrutura, dados, passo - 1, tamanhoEntrada, casoTest);
+
+                long tempoDepois = System.nanoTime();
+                long memoriaDepois = getProcessRssBytes();
+
+                tempos[repeticao] = tempoDepois - tempoAntes;
+                memorias[repeticao] = memoriaDepois - memoriaAntes;
+            }
+
+            Arrays.sort(tempos);
+            Arrays.sort(memorias);
+
+            gravarDadosArquivoSaida(
+                    resultFilePath,
+                    passo,
+                    operacao,
+                    calcularMediana(tempos),
+                    calcularMediana(memorias)
+            );
+        }
+    }
+
+    protected void executarPorOrdem(String ordem, String[] casos) {
+        for (String caso : casos) {
+            experimento(entrada, ordem, caso);
+        }
+    }
+
+    protected void executarPassosAte(
+            Estrutura estrutura,
+            List<Integer> dados,
+            int quantidadePassos,
             int tamanhoEntrada,
-            String tipoDado,
-            String casoTest,
-            String estrutura,
-            BufferedWriter writer
+            String casoTest
     ) {
+        for (int passo = 0; passo < quantidadePassos; passo++) {
+            executarPasso(estrutura, dados, passo, tamanhoEntrada, casoTest);
+        }
+    }
 
-        List<Integer> dados = getDados(tipoDado);
+    protected void executarPasso(
+            Estrutura estrutura,
+            List<Integer> dados,
+            int passo,
+            int tamanhoEntrada,
+            String casoTest
+    ) {
+        switch (casoTest) {
+            case "100I0R0S":
+                estrutura.add(dados.get(passo));
+                break;
 
-        long[] tempos = new long[REPETICOES];
-        long[] memorias = new long[REPETICOES];
+            case "50I50R0S":
+                if (passo < tamanhoEntrada / 2) {
+                    estrutura.add(dados.get(passo));
+                } else {
+                    estrutura.remove(dados.get(passo - (tamanhoEntrada / 2)));
+                }
+                break;
 
-        for (int s = 0; s < REPETICOES; s++) {
+            case "75I25R0S":
+                int limiteInsercao75 = (int) (tamanhoEntrada * 0.75);
+                if (passo < limiteInsercao75) {
+                    estrutura.add(dados.get(passo));
+                } else {
+                    estrutura.remove(dados.get(passo - limiteInsercao75));
+                }
+                break;
 
-            long memoriaAntes = getProcessRssBytes();
+            case "50I25R25S":
+                int limiteInsercao50 = (int) (tamanhoEntrada * 0.50);
+                int limiteBusca25 = (int) (tamanhoEntrada * 0.25);
 
-            long tempoAntes = System.nanoTime();
+                if (passo < limiteInsercao50) {
+                    estrutura.add(dados.get(passo));
+                } else if (passo < limiteInsercao50 + limiteBusca25) {
+                    estrutura.search(dados.get(passo - limiteInsercao50));
+                } else {
+                    estrutura.remove(dados.get(passo - limiteInsercao50 - limiteBusca25));
+                }
+                break;
 
-            executarCaso(dados, tamanhoEntrada, casoTest);
+            case "50I0R50S":
+                int limiteInsercao = (int) (tamanhoEntrada * 0.50);
 
-            long tempoDepois = System.nanoTime();
+                if (passo < limiteInsercao) {
+                    estrutura.add(dados.get(passo));
+                } else {
+                    estrutura.search(dados.get(passo - limiteInsercao));
+                }
+                break;
 
-            long memoriaDepois = getProcessRssBytes();
+            default:
+                throw new IllegalArgumentException("Caso de teste inválido: " + casoTest);
+        }
+    }
 
-            tempos[s] = tempoDepois - tempoAntes;
-            memorias[s] = memoriaDepois - memoriaAntes;
+    protected char descobrirOperacao(String casoTest, int passo, int tamanhoEntrada) {
+        switch (casoTest) {
+            case "100I0R0S":
+                return 'I';
+
+            case "50I50R0S":
+                return passo < tamanhoEntrada / 2 ? 'I' : 'R';
+
+            case "75I25R0S":
+                return passo < (int) (tamanhoEntrada * 0.75) ? 'I' : 'R';
+
+            case "50I25R25S":
+                int limiteInsercao50 = (int) (tamanhoEntrada * 0.50);
+                int limiteBusca25 = (int) (tamanhoEntrada * 0.25);
+
+                if (passo < limiteInsercao50) {
+                    return 'I';
+                } else if (passo < limiteInsercao50 + limiteBusca25) {
+                    return 'S';
+                } else {
+                    return 'R';
+                }
+
+            case "50I0R50S":
+                return passo < (int) (tamanhoEntrada * 0.50) ? 'I' : 'S';
+
+            default:
+                throw new IllegalArgumentException("Caso de teste inválido: " + casoTest);
+        }
+    }
+
+    protected List<Integer> getDadosPorOrdem(String ordem) {
+        switch (ordem) {
+            case "random":
+                return random;
+            case "crescente":
+                return crescente;
+            case "decrescente":
+                return decrescente;
+            default:
+                throw new IllegalArgumentException("Ordem inválida: " + ordem);
+        }
+    }
+
+    protected String gerarPathArquivoSaida(String ordem, String casoTest) {
+        String nomeEstrutura = getNomeEstrutura();
+
+        return "src/main/java/dev/ProjetoEDA/repository/results/"
+                + nomeEstrutura + "/result_"
+                + nomeEstrutura + "_" + ordem + "_" + casoTest + ".csv";
+    }
+
+    protected static BufferedWriter inicializarArquivoDeSaida(String resultFilePath) throws IOException {
+        File file = new File(resultFilePath);
+
+        if (!file.exists()) {
+            File parent = file.getParentFile();
+            if (parent != null) {
+                parent.mkdirs();
+            }
+            file.createNewFile();
         }
 
-        long tempoMediana = calcularMediana(tempos);
-        long memoriaMediana = calcularMediana(memorias);
+        BufferedWriter writer = new BufferedWriter(new FileWriter(file, true));
 
-        try {
+        if (file.length() == 0) {
+            writer.write("TamanhoEntrada,Operacao,TempoExecucao(ns),MemoriaUso(bytes)\n");
+        }
+
+        return writer;
+    }
+
+    protected void gravarDadosArquivoSaida(
+            String resultFilePath,
+            int tamanhoEntrada,
+            char operacao,
+            long tempoMediana,
+            long memoriaMediana
+    ) {
+        try (BufferedWriter writer = inicializarArquivoDeSaida(resultFilePath)) {
             writer.write(
                     tamanhoEntrada + "," +
-                    tipoDado + "," +
-                    casoTest + "," +
-                    estrutura + "," +
+                    operacao + "," +
                     tempoMediana + "," +
                     memoriaMediana + "\n"
             );
@@ -69,113 +230,58 @@ public abstract class Bench {
         }
     }
 
-    protected void executarCaso(List<Integer> dados, int tamanhoEntrada, String casoTest) {
-
-        switch (casoTest) {
-
-            case "100I0R0S":
-                executarI100_R0_S0(dados, tamanhoEntrada);
-                break;
-
-            case "50I50R0S":
-                executarI50_R50_S0(dados, tamanhoEntrada);
-                break;
-
-            case "75I25R0S":
-                executarI75_R25_S0(dados, tamanhoEntrada);
-                break;
-
-            case "50I25R25S":
-                executarI50_R25_S25(dados, tamanhoEntrada);
-                break;
-
-            case "50I0R50S":
-                executarI50_R0_S50(dados, tamanhoEntrada);
-                break;
-
-            default:
-                throw new IllegalArgumentException("Caso inválido: " + casoTest);
+    protected void lerDados() throws IOException {
+        if (dadosCarregados) {
+            return;
         }
+
+        random = carregarInteiros("src/main/java/dev/ProjetoEDA/repository/entry/entradaRandomUnica.csv");
+        crescente = carregarInteiros("src/main/java/dev/ProjetoEDA/repository/entry/entradaCrescenteUnica.csv");
+        decrescente = carregarInteiros("src/main/java/dev/ProjetoEDA/repository/entry/entradaDecrescenteUnica.csv");
+        entrada = carregarInteiroUnico("src/main/java/dev/ProjetoEDA/repository/entry/tamanhoEntrada.csv");
+
+        dadosCarregados = true;
     }
 
-    protected abstract void executarI100_R0_S0(List<Integer> dados, int n);
+    protected List<Integer> carregarInteiros(String path) throws IOException {
+        return Files.readAllLines(Paths.get(path))
+                .stream()
+                .map(String::trim)
+                .filter(linha -> !linha.isEmpty())
+                .filter(linha -> !linha.matches(".*[a-zA-Z].*"))
+                .map(linha -> linha.split(",")[0].trim())
+                .map(Integer::parseInt)
+                .collect(Collectors.toList());
+    }
 
-    protected abstract void executarI50_R50_S0(List<Integer> dados, int n);
-
-    protected abstract void executarI75_R25_S0(List<Integer> dados, int n);
-
-    protected abstract void executarI50_R25_S25(List<Integer> dados, int n);
-
-    protected abstract void executarI50_R0_S50(List<Integer> dados, int n);
-
-    protected List<Integer> getDados(String tipo) {
-
-        if (tipo.equals("random")) return random;
-
-        if (tipo.equals("crescente")) return crescente;
-
-        if (tipo.equals("decrescente")) return decrescente;
-
-        return entradas;
+    protected int carregarInteiroUnico(String path) throws IOException {
+        return Files.readAllLines(Paths.get(path))
+                .stream()
+                .map(String::trim)
+                .filter(linha -> !linha.isEmpty())
+                .filter(linha -> !linha.matches(".*[a-zA-Z].*"))
+                .map(linha -> linha.split(",")[0].trim())
+                .mapToInt(Integer::parseInt)
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Arquivo entradas.csv vazio"));
     }
 
     protected long calcularMediana(long[] valores) {
+        int meio = valores.length / 2;
 
-        Arrays.sort(valores);
-
-        int n = valores.length;
-
-        if (n % 2 == 1) {
-            return valores[n / 2];
+        if (valores.length % 2 == 0) {
+            return (valores[meio - 1] + valores[meio]) / 2;
         }
 
-        return (valores[n / 2 - 1] + valores[n / 2]) / 2;
+        return valores[meio];
     }
 
-    protected void lerDados() throws IOException {
-
-        String caminhoRandom =
-                "src/main/java/dev/ProjetoEDA/repository/entry/entradaRandomUnica.csv";
-
-        String caminhoCrescente =
-                "src/main/java/dev/ProjetoEDA/repository/entry/entradaCrescenteUnica.csv";
-
-        String caminhoDecrescente =
-                "src/main/java/dev/ProjetoEDA/repository/entry/entradaDecrescenteUnica.csv";
-
-        String caminhoEntradas =
-                "src/main/java/dev/ProjetoEDA/repository/entry/tamanhoEntrada.csv";
-
-        random = Files.lines(Paths.get(caminhoRandom))
-                .map(Integer::valueOf)
-                .collect(Collectors.toList());
-
-        crescente = Files.lines(Paths.get(caminhoCrescente))
-                .map(Integer::valueOf)
-                .collect(Collectors.toList());
-
-        decrescente = Files.lines(Paths.get(caminhoDecrescente))
-                .map(Integer::valueOf)
-                .collect(Collectors.toList());
-
-        entradas = Files.lines(Paths.get(caminhoEntradas))
-                .map(Integer::valueOf)
-                .collect(Collectors.toList());
+    protected long getProcessRssBytes() {
+        Runtime runtime = Runtime.getRuntime();
+        return runtime.totalMemory() - runtime.freeMemory();
     }
 
-    // RSS (Resident Set Size) do processo Java em bytes
-    private static long getProcessRssBytes() {
-        try (BufferedReader br = new BufferedReader(new FileReader("/proc/self/status"))) {
-            String s;
-            while ((s = br.readLine()) != null) {
-                if (s.startsWith("VmRSS:")) {
-                    String[] parts = s.trim().split("\\s+");
-                    long kb = Long.parseLong(parts[1]); // vem em kB
-                    return kb * 1024L; // converte pra bytes
-                }
-            }
-        } catch (IOException ignored) {}
-        return -1L;
-    }
+    protected abstract String getNomeEstrutura();
 
+    protected abstract Estrutura criarEstrutura();
 }

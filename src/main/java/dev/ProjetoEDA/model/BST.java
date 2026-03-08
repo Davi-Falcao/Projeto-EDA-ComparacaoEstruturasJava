@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.LinkedList;
 
-public class BST {
+public class BST implements Estrutura {
 
     private Node root;
     private int size;
@@ -13,12 +13,13 @@ public class BST {
         return this.root == null;
     }
 
-    public void add(int element) {
+    @Override
+    public boolean add(int element) {
         this.size += 1;
 
         if (isEmpty()) {
             this.root = new Node(element);
-            return;
+            return true;
         }
 
         Node aux = this.root;
@@ -29,7 +30,7 @@ public class BST {
                     Node newNode = new Node(element);
                     aux.left = newNode;
                     newNode.parent = aux;
-                    return;
+                    return true;
                 }
                 aux = aux.left;
             } else {
@@ -37,11 +38,13 @@ public class BST {
                     Node newNode = new Node(element);
                     aux.right = newNode;
                     newNode.parent = aux;
-                    return;
+                    return true;
                 }
                 aux = aux.right;
             }
         }
+
+        return true;
     }
 
     public Node min() {
@@ -128,16 +131,18 @@ public class BST {
         }
     }
 
-    public void remove(int value) {
+    @Override
+    public boolean remove(int value) {
         Node toRemove = searchNode(value);
         if (toRemove != null) {
             removeNode(toRemove);
             this.size -= 1;
+            return true;
         }
+        return false;
     }
 
     private void removeNode(Node toRemove) {
-
         if (toRemove.isLeaf()) {
             if (toRemove == this.root)
                 this.root = null;
@@ -179,7 +184,7 @@ public class BST {
         }
     }
 
-
+    @Override
     public boolean search(int element) {
         return searchNode(element) != null;
     }
