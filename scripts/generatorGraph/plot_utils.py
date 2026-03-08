@@ -13,11 +13,11 @@ def read_points(csv_path):
       3 MemoriaUso(bytes)
 
     Conversões internas:
-    - tempo: ns -> ms
+    - tempo: ns
     - memória: bytes
 
     Retorna:
-    - tempo_series:   dict[operacao] -> list[(entrada, tempo_ms)]
+    - tempo_series:   dict[operacao] -> list[(entrada, tempo_ns)]
     - memoria_series: dict[operacao] -> list[(entrada, memoria_bytes)]
     """
 
@@ -34,10 +34,10 @@ def read_points(csv_path):
 
             entrada = int(row[0])
             operacao = row[1].strip()
-            tempo_ms = float(row[2]) / 1_000_000
+            tempo_ns = float(row[2])
             memoria_bytes = float(row[3])
 
-            tempo_series[operacao].append((entrada, tempo_ms))
+            tempo_series[operacao].append((entrada, tempo_ns))
             memoria_series[operacao].append((entrada, memoria_bytes))
 
     for operacao in tempo_series:
@@ -73,10 +73,13 @@ def plot_time_csv(csv_path, output_path=None):
         plt.plot(xs, ys, marker="o", label=nome_operacao(operacao))
 
     plt.xlabel("TamanhoEntrada (N)")
-    plt.ylabel("Tempo (ms)")
+    plt.ylabel("Tempo (ns)")
     plt.title("Tempo por operação vs Tamanho da entrada")
     plt.legend()
     plt.xscale("log")
+
+    # limite mínimo vertical = 1000 ns
+    plt.ylim(bottom=100)
     plt.tight_layout()
 
     if output_path:

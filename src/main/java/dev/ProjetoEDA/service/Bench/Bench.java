@@ -55,30 +55,29 @@ public abstract class Bench {
     }
 
     protected void experimento(int tamanhoEntrada, String ordem, String casoTest) {
+
         List<Integer> dados = getDadosPorOrdem(ordem);
         String resultFilePath = gerarPathArquivoSaida(ordem, casoTest);
 
-        for (int passo = 1; passo <= tamanhoEntrada; passo++) {
-            int passoAtual = passo - 1;
+        Estrutura estrutura = criarEstrutura();
+
+        for (int passo = 0; passo < tamanhoEntrada; passo++) {
 
             long[] tempos = new long[REPETICOES];
             long[] memorias = new long[REPETICOES];
 
-            char operacao = descobrirOperacao(casoTest, passoAtual, tamanhoEntrada);
-            int indiceOperacao = descobrirIndiceOperacao(casoTest, passoAtual, tamanhoEntrada);
+            char operacao = descobrirOperacao(casoTest, passo, tamanhoEntrada);
+            int indiceOperacao = descobrirIndiceOperacao(casoTest, passo, tamanhoEntrada);
 
             for (int repeticao = 0; repeticao < REPETICOES; repeticao++) {
-                Estrutura estrutura = criarEstrutura();
 
-                executarPassosAte(estrutura, dados, passoAtual, tamanhoEntrada, casoTest);
-
-                long memoriaAntes = getProcessRssBytes();
+                long memoriaAntes = getHeapUsedBytes();
                 long tempoAntes = System.nanoTime();
 
-                executarPasso(estrutura, dados, passoAtual, tamanhoEntrada, casoTest);
+                executarPasso(estrutura, dados, passo, tamanhoEntrada, casoTest);
 
                 long tempoDepois = System.nanoTime();
-                long memoriaDepois = getProcessRssBytes();
+                long memoriaDepois = getHeapUsedBytes();
 
                 tempos[repeticao] = tempoDepois - tempoAntes;
                 memorias[repeticao] = memoriaDepois - memoriaAntes;
@@ -88,15 +87,14 @@ public abstract class Bench {
             Arrays.sort(memorias);
 
             gravarDadosArquivoSaida(
-                    resultFilePath,
-                    indiceOperacao,
-                    operacao,
-                    calcularMediana(tempos),
-                    calcularMediana(memorias)
+                resultFilePath,
+                indiceOperacao,
+                operacao,
+                calcularMediana(tempos),
+                calcularMediana(memorias)
             );
         }
     }
-
     /**
      * Executa todos os casos de teste para uma determinada ordem de dados.
      */
@@ -403,6 +401,10 @@ public abstract class Bench {
         return runtime.totalMemory() - runtime.freeMemory();
     }
 
+    protected long getHeapUsedBytes() {
+    Runtime runtime = Runtime.getRuntime();
+    return runtime.totalMemory() - runtime.freeMemory();
+    }   
     /** Retorna o nome da estrutura testada. */
     protected abstract String getNomeEstrutura();
 
