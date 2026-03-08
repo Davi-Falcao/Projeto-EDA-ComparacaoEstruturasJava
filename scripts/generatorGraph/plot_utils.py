@@ -101,7 +101,6 @@ def plot_time_csv(csv_path, output_path=None):
 
     plt.xlabel("Tamanho da entrada (N)")
     plt.ylabel("Tempo médio por operação (ns)")
-    plt.ylim(top=10000)
     if estrutura and ordem and tipo and alvo:
         plt.title(f"Tempo - {estrutura.capitalize()} - {ordem} - {tipo} - {alvo}")
     else:

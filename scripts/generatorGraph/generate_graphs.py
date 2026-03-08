@@ -1,17 +1,12 @@
 import os
 import argparse
-from plot_utils import plot_time_csv, plot_mem_csv
+from plot_utils import *
 
 INPUT_DIR = "src/main/java/dev/ProjetoEDA/repository/results"
 OUTPUT_DIR = "src/main/java/dev/ProjetoEDA/repository/graphs"
 
 
 def extrair_info_nome_arquivo(csv_path):
-    """
-    Formatos aceitos:
-      result_<estrutura>_<ordem>_<operacao>.csv
-      result_<estrutura>_<ordem>_workload_<caso>.csv
-    """
     nome_arquivo = os.path.basename(csv_path)
     nome_sem_ext = os.path.splitext(nome_arquivo)[0]
     partes = nome_sem_ext.split("_")
@@ -32,6 +27,11 @@ def extrair_info_nome_arquivo(csv_path):
     return estrutura, ordem, tipo, alvo
 
 
+def eh_csv_referencia(csv_path):
+    _, _, tipo, _ = extrair_info_nome_arquivo(csv_path)
+    return tipo == "operacao"
+
+
 def gerar_graficos(csv_path):
     estrutura, ordem, tipo, alvo = extrair_info_nome_arquivo(csv_path)
 
@@ -48,7 +48,7 @@ def gerar_graficos(csv_path):
         f"{estrutura.lower()}_{ordem}_{tipo}_{alvo}_memoria.png"
     )
 
-    plot_time_csv(csv_path, tempo_output)
+    plot_time_csv(csv_path, tempo_output, limite_y=10000)
     plot_mem_csv(csv_path, memoria_output)
 
     print(f"[OK] {os.path.basename(csv_path)}")
@@ -83,6 +83,69 @@ def listar_csvs(nome_estrutura=None):
     return sorted(arquivos)
 
 
+def agrupar_referencias_por_ordem(csvs):
+    grupos = {
+        "random": [],
+        "crescente": [],
+        "decrescente": []
+    }
+
+    estrutura_ref = None
+
+    for caminho in csvs:
+        estrutura, ordem, tipo, _ = extrair_info_nome_arquivo(caminho)
+
+        if tipo == "operacao" and ordem in grupos:
+            grupos[ordem].append(caminho)
+            estrutura_ref = estrutura
+
+    return estrutura_ref, grupos
+
+
+def gerar_graficos_referencia_agrupados(nome_estrutura):
+    csvs = listar_csvs(nome_estrutura)
+    estrutura, grupos = agrupar_referencias_por_ordem(csvs)
+
+    if not estrutura:
+        return
+
+    pasta_saida = os.path.join(OUTPUT_DIR, estrutura.lower())
+    os.makedirs(pasta_saida, exist_ok=True)
+
+    for ordem, arquivos in grupos.items():
+        if not arquivos:
+            continue
+
+        tempo_output = os.path.join(
+            pasta_saida,
+            f"{estrutura.lower()}_referencia_{ordem}_tempo.png"
+        )
+
+        memoria_output = os.path.join(
+            pasta_saida,
+            f"{estrutura.lower()}_referencia_{ordem}_memoria.png"
+        )
+
+        plot_referencia_agrupada(
+            arquivos,
+            estrutura=estrutura,
+            ordem=ordem,
+            output_path=tempo_output,
+            tipo="tempo",
+            limite_y=10000
+        )
+
+        plot_referencia_agrupada(
+            arquivos,
+            estrutura=estrutura,
+            ordem=ordem,
+            output_path=memoria_output,
+            tipo="memoria"
+        )
+
+        print(f"[OK] referência agrupada {estrutura} {ordem}")
+
+
 def gerar_todos():
     encontrados = listar_csvs()
 
@@ -90,11 +153,21 @@ def gerar_todos():
         print("Nenhum CSV encontrado.")
         return
 
+    estruturas = set()
+
     for caminho in encontrados:
         try:
             gerar_graficos(caminho)
+            estrutura, _, _, _ = extrair_info_nome_arquivo(caminho)
+            estruturas.add(estrutura.lower())
         except Exception as e:
             print(f"[ERRO] {os.path.basename(caminho)} -> {e}")
+
+    for estrutura in sorted(estruturas):
+        try:
+            gerar_graficos_referencia_agrupados(estrutura)
+        except Exception as e:
+            print(f"[ERRO] referência agrupada {estrutura} -> {e}")
 
 
 def gerar_por_estrutura(nome_estrutura):
@@ -113,6 +186,11 @@ def gerar_por_estrutura(nome_estrutura):
             gerar_graficos(caminho)
         except Exception as e:
             print(f"[ERRO] {os.path.basename(caminho)} -> {e}")
+
+    try:
+        gerar_graficos_referencia_agrupados(nome_estrutura)
+    except Exception as e:
+        print(f"[ERRO] referência agrupada {nome_estrutura} -> {e}")
 
 
 def main():

@@ -17,10 +17,9 @@ import dev.ProjetoEDA.model.Estrutura;
 /**
  * Classe abstrata base para benchmarks de estruturas.
  *
- * <p>Esta classe executa automaticamente:</p>
- *
+ * <p>Executa automaticamente:</p>
  * <ul>
- *   <li>Benchmarks de operação isolada: ADD, SEARCH e REMOVE</li>
+ *   <li>Benchmarks de referência por operação: ADD, SEARCH e REMOVE</li>
  *   <li>Benchmarks de workload misto:
  *     <ul>
  *       <li>100I0R0S</li>
@@ -30,10 +29,6 @@ import dev.ProjetoEDA.model.Estrutura;
  *     </ul>
  *   </li>
  * </ul>
- *
- * <p>Os benchmarks de operação isolada servem como referência
- * para análise assintótica. Os benchmarks mistos servem para
- * representar workloads reais.</p>
  */
 public abstract class Bench {
 
@@ -61,33 +56,19 @@ public abstract class Bench {
             this.nome = nome;
         }
 
-        /**
-         * Retorna o nome textual do caso.
-         *
-         * @return nome do caso
-         */
         public String getNome() {
             return nome;
         }
     }
 
-    /**
-     * Ordens de entrada suportadas.
-     */
     protected static final String[] ORDENS = { "random", "crescente", "decrescente" };
 
-    /**
-     * Operações isoladas executadas automaticamente.
-     */
     protected static final Operacao[] OPERACOES_ISOLADAS = {
         Operacao.ADD,
         Operacao.SEARCH,
         Operacao.REMOVE
     };
 
-    /**
-     * Casos mistos executados automaticamente.
-     */
     protected static final CasoMisto[] CASOS_MISTOS = {
         CasoMisto.C100I0R0S,
         CasoMisto.C75I25R0S,
@@ -95,43 +76,38 @@ public abstract class Bench {
         CasoMisto.C50I0R50S
     };
 
-    /**
-     * Dados de entrada carregados por ordem.
-     */
     protected static List<Integer> random;
     protected static List<Integer> crescente;
     protected static List<Integer> decrescente;
 
-    /**
-     * Tamanho máximo da entrada do experimento.
-     */
     protected static int entrada;
 
-    /**
-     * Indica se os dados já foram carregados.
-     */
     private static boolean dadosCarregados = false;
 
     /**
-     * Quantidade de rodadas de warmup.
+     * Warmup da JVM.
      */
     protected static final int RODADAS_WARMUP = 3;
 
     /**
-     * Quantidade de rodadas reais de medição.
+     * Número de amostras reais.
      */
     protected static final int RODADAS_MEDICAO = 9;
 
     /**
-     * Número de repetições por amostra para operação isolada.
+     * Quantidade de operações por amostra em ADD e SEARCH.
      */
     protected static final int REPETICOES_POR_AMOSTRA = 2000;
 
     /**
-     * Define o tamanho máximo da entrada.
+     * Quantidade de amostras unitárias para REMOVE.
      *
-     * @param tamanhoEntrada tamanho desejado
+     * <p>Cada repetição recria a estrutura com tamanho n e remove
+     * apenas um elemento, evitando que o custo acumulado de várias
+     * remoções sequenciais pareça quadrático.</p>
      */
+    protected static final int REPETICOES_REMOVE = 200;
+
     public void definirEntrada(int tamanhoEntrada) {
         if (tamanhoEntrada <= 0) {
             throw new IllegalArgumentException("O tamanho da entrada deve ser maior que zero.");
@@ -141,8 +117,7 @@ public abstract class Bench {
     }
 
     /**
-     * Executa todos os benchmarks automaticamente:
-     * operações isoladas e workloads mistos.
+     * Executa todos os benchmarks.
      */
     public void run() {
         try {
@@ -154,11 +129,6 @@ public abstract class Bench {
         }
     }
 
-    /**
-     * Executa automaticamente todos os benchmarks de operação isolada.
-     *
-     * @throws IOException se houver erro de escrita
-     */
     protected void executarOperacoesIsoladas() throws IOException {
         for (Operacao operacao : OPERACOES_ISOLADAS) {
             for (String ordem : ORDENS) {
@@ -167,11 +137,6 @@ public abstract class Bench {
         }
     }
 
-    /**
-     * Executa automaticamente todos os benchmarks de workload misto.
-     *
-     * @throws IOException se houver erro de escrita
-     */
     protected void executarCasosMistos() throws IOException {
         for (CasoMisto caso : CASOS_MISTOS) {
             for (String ordem : ORDENS) {
@@ -181,11 +146,7 @@ public abstract class Bench {
     }
 
     /**
-     * Executa experimento de operação isolada para uma ordem específica.
-     *
-     * @param ordem ordem da entrada
-     * @param operacao operação alvo
-     * @throws IOException se houver erro de escrita
+     * Benchmark de referência por operação.
      */
     protected void executarExperimentoOperacao(String ordem, Operacao operacao) throws IOException {
         List<Integer> dados = getDadosPorOrdem(ordem);
@@ -199,17 +160,9 @@ public abstract class Bench {
                 long[] memorias = new long[RODADAS_MEDICAO];
 
                 for (int rodada = 0; rodada < RODADAS_MEDICAO; rodada++) {
-                    Estrutura estrutura = criarEstrutura();
-                    prepararEstruturaParaOperacao(estrutura, dados, n, operacao);
-
-                    long memoriaAntes = getHeapUsedBytes();
-                    long inicio = System.nanoTime();
-                    int qtdExecutada = executarBlocoOperacao(estrutura, dados, n, operacao, REPETICOES_POR_AMOSTRA, rodada);
-                    long fim = System.nanoTime();
-                    long memoriaDepois = getHeapUsedBytes();
-
-                    tempos[rodada] = (fim - inicio) / Math.max(1, qtdExecutada);
-                    memorias[rodada] = Math.max(0, memoriaDepois - memoriaAntes);
+                    ResultadoOperacao resultado = medirOperacao(dados, n, operacao, rodada);
+                    tempos[rodada] = resultado.tempoMedio;
+                    memorias[rodada] = resultado.memoriaMedia;
                 }
 
                 gravarLinhaResultado(
@@ -224,11 +177,121 @@ public abstract class Bench {
     }
 
     /**
-     * Executa experimento de workload misto para uma ordem específica.
+     * Mede uma operação de forma controlada.
+     */
+    protected ResultadoOperacao medirOperacao(List<Integer> dados, int n, Operacao operacao, int rodada) {
+        switch (operacao) {
+            case ADD:
+                return medirAdd(dados, n, rodada);
+            case SEARCH:
+                return medirSearch(dados, n, rodada);
+            case REMOVE:
+                return medirRemove(dados, n, rodada);
+            default:
+                throw new IllegalArgumentException("Operação inválida: " + operacao);
+        }
+    }
+
+    /**
+     * Mede ADD em bloco.
+     */
+    protected ResultadoOperacao medirAdd(List<Integer> dados, int n, int rodada) {
+        Estrutura estrutura = criarEstrutura();
+
+        long memoriaAntes = getHeapUsedBytes();
+        long inicio = System.nanoTime();
+
+        for (int i = 0; i < REPETICOES_POR_AMOSTRA; i++) {
+            int indice = (i + rodada) % dados.size();
+            estrutura.add(dados.get(indice));
+        }
+
+        long fim = System.nanoTime();
+        long memoriaDepois = getHeapUsedBytes();
+
+        long tempoMedio = (fim - inicio) / REPETICOES_POR_AMOSTRA;
+        long memoriaMedia = Math.max(0, memoriaDepois - memoriaAntes);
+
+        return new ResultadoOperacao(tempoMedio, memoriaMedia);
+    }
+
+    /**
+     * Mede SEARCH em uma estrutura previamente populada com n elementos.
+     */
+    protected ResultadoOperacao medirSearch(List<Integer> dados, int n, int rodada) {
+        Estrutura estrutura = criarEstrutura();
+
+        for (int i = 0; i < n; i++) {
+            estrutura.add(dados.get(i));
+        }
+
+        long memoriaAntes = getHeapUsedBytes();
+        long inicio = System.nanoTime();
+
+        for (int i = 0; i < REPETICOES_POR_AMOSTRA; i++) {
+            int indice = distribuirIndice(i + rodada, REPETICOES_POR_AMOSTRA, n);
+            estrutura.search(dados.get(indice));
+        }
+
+        long fim = System.nanoTime();
+        long memoriaDepois = getHeapUsedBytes();
+
+        long tempoMedio = (fim - inicio) / REPETICOES_POR_AMOSTRA;
+        long memoriaMedia = Math.max(0, memoriaDepois - memoriaAntes);
+
+        return new ResultadoOperacao(tempoMedio, memoriaMedia);
+    }
+
+    /**
+     * Mede REMOVE de forma unitária.
      *
-     * @param ordem ordem da entrada
-     * @param caso caso misto
-     * @throws IOException se houver erro de escrita
+     * <p>Cada repetição recria uma estrutura de tamanho n e remove um único
+     * elemento. Isso faz o gráfico refletir o custo da operação remove,
+     * e não o custo acumulado de uma sequência de remoções.</p>
+     */
+    protected ResultadoOperacao medirRemove(List<Integer> dados, int n, int rodada) {
+        Random randomizador = new Random(97L * n + rodada);
+
+        long tempoTotal = 0L;
+        long memoriaTotal = 0L;
+
+        for (int r = 0; r < REPETICOES_REMOVE; r++) {
+            Estrutura estrutura = criarEstrutura();
+
+            for (int i = 0; i < n; i++) {
+                estrutura.add(dados.get(i));
+            }
+
+            int indice = randomizador.nextInt(n);
+            int valor = dados.get(indice);
+
+            long memoriaAntes = getHeapUsedBytes();
+            long inicio = System.nanoTime();
+            estrutura.remove(valor);
+            long fim = System.nanoTime();
+            long memoriaDepois = getHeapUsedBytes();
+
+            tempoTotal += (fim - inicio);
+            memoriaTotal += Math.max(0, memoriaDepois - memoriaAntes);
+        }
+
+        long tempoMedio = tempoTotal / REPETICOES_REMOVE;
+        long memoriaMedia = memoriaTotal / REPETICOES_REMOVE;
+
+        return new ResultadoOperacao(tempoMedio, memoriaMedia);
+    }
+
+    protected void executarWarmupOperacao(List<Integer> dados, int n, Operacao operacao) {
+        for (int i = 0; i < RODADAS_WARMUP; i++) {
+            medirOperacao(dados, n, operacao, i);
+        }
+    }
+
+    /**
+     * Workload misto.
+     *
+     * <p>Esse modo continua útil para simular uso real, mas não deve ser usado
+     * como referência primária de Big-O da operação individual.</p>
      */
     protected void executarExperimentoWorkload(String ordem, CasoMisto caso) throws IOException {
         List<Integer> dados = getDadosPorOrdem(ordem);
@@ -242,10 +305,6 @@ public abstract class Bench {
                 long[] temposSearch = new long[RODADAS_MEDICAO];
                 long[] temposRemove = new long[RODADAS_MEDICAO];
 
-                long[] memAdd = new long[RODADAS_MEDICAO];
-                long[] memSearch = new long[RODADAS_MEDICAO];
-                long[] memRemove = new long[RODADAS_MEDICAO];
-
                 boolean temAdd = false;
                 boolean temSearch = false;
                 boolean temRemove = false;
@@ -255,175 +314,41 @@ public abstract class Bench {
 
                     if (resultado.qtdAdd > 0) {
                         temposAdd[rodada] = resultado.tempoAdd / resultado.qtdAdd;
-                        memAdd[rodada] = resultado.memAdd / resultado.qtdAdd;
                         temAdd = true;
                     }
 
                     if (resultado.qtdSearch > 0) {
                         temposSearch[rodada] = resultado.tempoSearch / resultado.qtdSearch;
-                        memSearch[rodada] = resultado.memSearch / resultado.qtdSearch;
                         temSearch = true;
                     }
 
                     if (resultado.qtdRemove > 0) {
                         temposRemove[rodada] = resultado.tempoRemove / resultado.qtdRemove;
-                        memRemove[rodada] = resultado.memRemove / resultado.qtdRemove;
                         temRemove = true;
                     }
                 }
 
                 if (temAdd) {
-                    gravarLinhaResultado(
-                            writer,
-                            n,
-                            Operacao.ADD.name(),
-                            calcularMediana(temposAdd),
-                            calcularMediana(memAdd)
-                    );
+                    gravarLinhaResultado(writer, n, Operacao.ADD.name(), calcularMediana(temposAdd), 0);
                 }
 
                 if (temSearch) {
-                    gravarLinhaResultado(
-                            writer,
-                            n,
-                            Operacao.SEARCH.name(),
-                            calcularMediana(temposSearch),
-                            calcularMediana(memSearch)
-                    );
+                    gravarLinhaResultado(writer, n, Operacao.SEARCH.name(), calcularMediana(temposSearch), 0);
                 }
 
                 if (temRemove) {
-                    gravarLinhaResultado(
-                            writer,
-                            n,
-                            Operacao.REMOVE.name(),
-                            calcularMediana(temposRemove),
-                            calcularMediana(memRemove)
-                    );
+                    gravarLinhaResultado(writer, n, Operacao.REMOVE.name(), calcularMediana(temposRemove), 0);
                 }
             }
         }
     }
 
-    /**
-     * Executa warmup para benchmark de operação isolada.
-     *
-     * @param dados dados de entrada
-     * @param n tamanho atual
-     * @param operacao operação alvo
-     */
-    protected void executarWarmupOperacao(List<Integer> dados, int n, Operacao operacao) {
-        for (int i = 0; i < RODADAS_WARMUP; i++) {
-            Estrutura estrutura = criarEstrutura();
-            prepararEstruturaParaOperacao(estrutura, dados, n, operacao);
-            executarBlocoOperacao(
-                    estrutura,
-                    dados,
-                    n,
-                    operacao,
-                    Math.min(REPETICOES_POR_AMOSTRA, Math.max(10, n)),
-                    i
-            );
-        }
-    }
-
-    /**
-     * Executa warmup para benchmark de workload.
-     *
-     * @param dados dados de entrada
-     * @param n tamanho atual
-     * @param caso caso misto
-     * @param ordem ordem da entrada
-     */
     protected void executarWarmupWorkload(List<Integer> dados, int n, CasoMisto caso, String ordem) {
         for (int i = 0; i < RODADAS_WARMUP; i++) {
             executarRoundWorkload(dados, n, caso, ordem, i);
         }
     }
 
-    /**
-     * Prepara a estrutura para operação isolada.
-     *
-     * @param estrutura estrutura alvo
-     * @param dados dados de entrada
-     * @param n tamanho atual
-     * @param operacao operação alvo
-     */
-    protected void prepararEstruturaParaOperacao(Estrutura estrutura, List<Integer> dados, int n, Operacao operacao) {
-        if (operacao == Operacao.ADD) {
-            return;
-        }
-
-        for (int i = 0; i < n; i++) {
-            estrutura.add(dados.get(i));
-        }
-    }
-
-    /**
-     * Executa bloco de operação isolada.
-     *
-     * @param estrutura estrutura alvo
-     * @param dados dados de entrada
-     * @param n tamanho atual
-     * @param operacao operação alvo
-     * @param repeticoes quantidade de repetições
-     * @param semente índice da rodada
-     * @return quantidade real de operações executadas
-     */
-    protected int executarBlocoOperacao(
-            Estrutura estrutura,
-            List<Integer> dados,
-            int n,
-            Operacao operacao,
-            int repeticoes,
-            int semente
-    ) {
-        switch (operacao) {
-            case ADD:
-                for (int i = 0; i < repeticoes; i++) {
-                    int indice = (i + semente) % dados.size();
-                    estrutura.add(dados.get(indice));
-                }
-                return repeticoes;
-
-            case SEARCH:
-                for (int i = 0; i < repeticoes; i++) {
-                    int indice = distribuirIndice(i, repeticoes, n);
-                    estrutura.search(dados.get(indice));
-                }
-                return repeticoes;
-
-            case REMOVE:
-                java.util.ArrayList<Integer> ativos = new java.util.ArrayList<>(n);
-                for (int i = 0; i < n; i++) {
-                    ativos.add(dados.get(i));
-                }
-
-                Random randomizador = new Random(97L * n + semente);
-                int limite = Math.min(repeticoes, n);
-
-                for (int i = 0; i < limite; i++) {
-                    int indice = randomizador.nextInt(ativos.size());
-                    int valor = ativos.remove(indice);
-                    estrutura.remove(valor);
-                }
-                return limite;
-
-            default:
-                throw new IllegalArgumentException("Operação inválida: " + operacao);
-        }
-    }
-
-    /**
-     * Executa uma rodada completa de workload misto.
-     *
-     * @param dados dados de entrada
-     * @param n quantidade total de operações do workload
-     * @param caso caso misto
-     * @param ordem ordem da entrada
-     * @param rodada índice da rodada
-     * @return resultado agregado da rodada
-     */
     protected ResultadoWorkload executarRoundWorkload(
             List<Integer> dados,
             int n,
@@ -448,7 +373,6 @@ public abstract class Bench {
         for (int passo = 0; passo < n; passo++) {
             Operacao operacao = descobrirOperacaoWorkload(caso, passo, n);
 
-            long memoriaAntes = getHeapUsedBytes();
             long inicio = System.nanoTime();
 
             switch (operacao) {
@@ -457,6 +381,8 @@ public abstract class Bench {
                     estrutura.add(valorInsercao);
                     ativos.add(valorInsercao);
                     addExecutados++;
+                    resultado.qtdAdd++;
+                    resultado.tempoAdd += (System.nanoTime() - inicio);
                     break;
 
                 case SEARCH:
@@ -464,6 +390,8 @@ public abstract class Bench {
                         int indiceBusca = randomizador.nextInt(ativos.size());
                         int valorBusca = ativos.get(indiceBusca);
                         estrutura.search(valorBusca);
+                        resultado.qtdSearch++;
+                        resultado.tempoSearch += (System.nanoTime() - inicio);
                     }
                     break;
 
@@ -472,59 +400,19 @@ public abstract class Bench {
                         int indiceRemocao = randomizador.nextInt(ativos.size());
                         int valorRemocao = ativos.remove(indiceRemocao);
                         estrutura.remove(valorRemocao);
+                        resultado.qtdRemove++;
+                        resultado.tempoRemove += (System.nanoTime() - inicio);
                     }
                     break;
 
                 default:
                     throw new IllegalArgumentException("Operação inválida no workload: " + operacao);
             }
-
-            long fim = System.nanoTime();
-            long memoriaDepois = getHeapUsedBytes();
-
-            long tempo = fim - inicio;
-            long memoria = Math.max(0, memoriaDepois - memoriaAntes);
-
-            switch (operacao) {
-                case ADD:
-                    resultado.tempoAdd += tempo;
-                    resultado.memAdd += memoria;
-                    resultado.qtdAdd++;
-                    break;
-
-                case SEARCH:
-                    if (!ativos.isEmpty()) {
-                        resultado.tempoSearch += tempo;
-                        resultado.memSearch += memoria;
-                        resultado.qtdSearch++;
-                    }
-                    break;
-
-                case REMOVE:
-                    if (resultado.qtdAdd > resultado.qtdRemove) {
-                        resultado.tempoRemove += tempo;
-                        resultado.memRemove += memoria;
-                        resultado.qtdRemove++;
-                    }
-                    break;
-
-                default:
-                    break;
-            }
         }
 
         return resultado;
     }
 
-    /**
-     * Descobre qual operação deve ser executada em um passo
-     * do caso misto.
-     *
-     * @param caso caso misto
-     * @param passo passo atual
-     * @param n total de operações
-     * @return operação correspondente
-     */
     protected Operacao descobrirOperacaoWorkload(CasoMisto caso, int passo, int n) {
         int qtdAdd = quantidadeAdd(caso, n);
         int qtdSearch = quantidadeSearch(caso, n);
@@ -532,10 +420,8 @@ public abstract class Bench {
         switch (caso) {
             case C100I0R0S:
                 return Operacao.ADD;
-
             case C75I25R0S:
                 return passo < qtdAdd ? Operacao.ADD : Operacao.REMOVE;
-
             case C50I25R25S:
                 if (passo < qtdAdd) {
                     return Operacao.ADD;
@@ -544,22 +430,13 @@ public abstract class Bench {
                 } else {
                     return Operacao.REMOVE;
                 }
-
             case C50I0R50S:
                 return passo < qtdAdd ? Operacao.ADD : Operacao.SEARCH;
-
             default:
                 throw new IllegalArgumentException("Caso misto inválido: " + caso.getNome());
         }
     }
 
-    /**
-     * Calcula quantidade de inserções para o caso.
-     *
-     * @param caso caso misto
-     * @param n total de operações
-     * @return quantidade de inserções
-     */
     protected int quantidadeAdd(CasoMisto caso, int n) {
         switch (caso) {
             case C100I0R0S:
@@ -574,13 +451,6 @@ public abstract class Bench {
         }
     }
 
-    /**
-     * Calcula quantidade de buscas para o caso.
-     *
-     * @param caso caso misto
-     * @param n total de operações
-     * @return quantidade de buscas
-     */
     protected int quantidadeSearch(CasoMisto caso, int n) {
         switch (caso) {
             case C50I25R25S:
@@ -593,34 +463,9 @@ public abstract class Bench {
     }
 
     /**
-     * Distribui índices por toda a estrutura para evitar viés
-     * concentrado no início.
-     *
-     * @param iteracao iteração atual
-     * @param total total de iterações
-     * @param tamanho tamanho da estrutura
-     * @return índice distribuído
-     */
-    protected int distribuirIndice(int iteracao, int total, int tamanho) {
-        if (tamanho <= 1) {
-            return 0;
-        }
-
-        int indice = (int) (((long) iteracao * tamanho) / Math.max(1, total));
-        return Math.min(indice, tamanho - 1);
-    }
-
-    /**
-     * Gera no máximo 10 escalas distribuídas logaritmicamente
-     * entre 100 e o valor máximo de entrada.
-     *
-     * Essa abordagem gera pontos bem distribuídos para análise
-     * de complexidade assintótica sem poluir os gráficos.
-     *
-     * @return vetor de tamanhos de entrada
+     * Gera no máximo 10 escalas entre 100 e a entrada máxima.
      */
     protected int[] gerarEscalas() {
-
         int minimo = 100;
         int maximo = entrada;
 
@@ -629,17 +474,14 @@ public abstract class Bench {
         }
 
         int quantidade = 10;
-
         java.util.Set<Integer> escalas = new java.util.LinkedHashSet<>();
 
         double logMin = Math.log10(minimo);
         double logMax = Math.log10(maximo);
 
         for (int i = 0; i < quantidade; i++) {
-
             double t = (double) i / (quantidade - 1);
             double valor = Math.pow(10, logMin + (logMax - logMin) * t);
-
             int escala = (int) Math.round(valor);
 
             if (escala <= maximo) {
@@ -653,11 +495,17 @@ public abstract class Bench {
     }
 
     /**
-     * Calcula mediana de um vetor.
-     *
-     * @param valores valores de entrada
-     * @return mediana
+     * Distribui buscas ao longo de toda a estrutura.
      */
+    protected int distribuirIndice(int iteracao, int total, int tamanho) {
+        if (tamanho <= 1) {
+            return 0;
+        }
+
+        int indice = (int) (((long) iteracao * tamanho) / Math.max(1, total));
+        return Math.min(indice, tamanho - 1);
+    }
+
     protected long calcularMediana(long[] valores) {
         long[] copia = Arrays.copyOf(valores, valores.length);
         Arrays.sort(copia);
@@ -671,12 +519,6 @@ public abstract class Bench {
         return copia[meio];
     }
 
-    /**
-     * Obtém os dados de acordo com a ordem escolhida.
-     *
-     * @param ordem ordem da entrada
-     * @return lista de dados correspondente
-     */
     protected List<Integer> getDadosPorOrdem(String ordem) {
         switch (ordem) {
             case "random":
@@ -690,13 +532,6 @@ public abstract class Bench {
         }
     }
 
-    /**
-     * Gera o caminho do arquivo CSV para benchmark de operação isolada.
-     *
-     * @param ordem ordem da entrada
-     * @param operacao operação alvo
-     * @return caminho do arquivo
-     */
     protected String gerarPathArquivoSaidaOperacao(String ordem, Operacao operacao) {
         String nomeEstrutura = getNomeEstrutura().toLowerCase();
         return "src/main/java/dev/ProjetoEDA/repository/results/"
@@ -704,13 +539,6 @@ public abstract class Bench {
                 + nomeEstrutura + "_" + ordem + "_" + operacao.name().toLowerCase() + ".csv";
     }
 
-    /**
-     * Gera o caminho do arquivo CSV para benchmark de workload misto.
-     *
-     * @param ordem ordem da entrada
-     * @param caso caso misto
-     * @return caminho do arquivo
-     */
     protected String gerarPathArquivoSaidaWorkload(String ordem, CasoMisto caso) {
         String nomeEstrutura = getNomeEstrutura().toLowerCase();
         return "src/main/java/dev/ProjetoEDA/repository/results/"
@@ -718,13 +546,6 @@ public abstract class Bench {
                 + nomeEstrutura + "_" + ordem + "_workload_" + caso.getNome() + ".csv";
     }
 
-    /**
-     * Inicializa um arquivo CSV de saída.
-     *
-     * @param resultFilePath caminho do arquivo
-     * @return writer pronto para uso
-     * @throws IOException se houver erro de I/O
-     */
     protected BufferedWriter inicializarArquivoDeSaida(String resultFilePath) throws IOException {
         File file = new File(resultFilePath);
 
@@ -741,16 +562,6 @@ public abstract class Bench {
         return writer;
     }
 
-    /**
-     * Grava uma linha de resultado no CSV.
-     *
-     * @param writer writer do arquivo
-     * @param tamanhoEntrada tamanho da entrada
-     * @param operacao nome da operação
-     * @param tempoMedio tempo médio em nanosegundos
-     * @param memoriaUso memória usada em bytes
-     * @throws IOException se houver erro de escrita
-     */
     protected void gravarLinhaResultado(
             BufferedWriter writer,
             int tamanhoEntrada,
@@ -766,11 +577,6 @@ public abstract class Bench {
         );
     }
 
-    /**
-     * Carrega os arquivos de entrada uma única vez.
-     *
-     * @throws IOException se houver erro de leitura
-     */
     protected void lerDados() throws IOException {
         if (dadosCarregados) {
             return;
@@ -783,13 +589,6 @@ public abstract class Bench {
         dadosCarregados = true;
     }
 
-    /**
-     * Carrega lista de inteiros de um arquivo.
-     *
-     * @param path caminho do arquivo
-     * @return lista de inteiros
-     * @throws IOException se houver erro de leitura
-     */
     protected List<Integer> carregarInteiros(String path) throws IOException {
         try (Stream<String> linhas = Files.lines(Paths.get(path))) {
             return linhas
@@ -802,41 +601,35 @@ public abstract class Bench {
         }
     }
 
-    /**
-     * Retorna a quantidade de heap usada no instante da chamada.
-     *
-     * @return bytes usados no heap
-     */
     protected long getHeapUsedBytes() {
         Runtime runtime = Runtime.getRuntime();
         return runtime.totalMemory() - runtime.freeMemory();
     }
 
-    /**
-     * Retorna o nome da estrutura.
-     *
-     * @return nome da estrutura
-     */
     protected abstract String getNomeEstrutura();
 
-    /**
-     * Cria uma nova instância da estrutura.
-     *
-     * @return nova estrutura
-     */
     protected abstract Estrutura criarEstrutura();
 
     /**
-     * Estrutura auxiliar para acumular resultados de workload.
+     * Resultado de uma operação isolada.
+     */
+    protected static class ResultadoOperacao {
+        long tempoMedio;
+        long memoriaMedia;
+
+        ResultadoOperacao(long tempoMedio, long memoriaMedia) {
+            this.tempoMedio = tempoMedio;
+            this.memoriaMedia = memoriaMedia;
+        }
+    }
+
+    /**
+     * Resultado de um workload.
      */
     protected static class ResultadoWorkload {
         long tempoAdd;
         long tempoSearch;
         long tempoRemove;
-
-        long memAdd;
-        long memSearch;
-        long memRemove;
 
         int qtdAdd;
         int qtdSearch;
