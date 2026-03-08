@@ -145,6 +145,12 @@ public abstract class Bench {
         }
     }
 
+protected void executarWarmupOperacao(List<Integer> dados, int n, Operacao operacao) {
+    for (int i = 0; i < RODADAS_WARMUP; i++) {
+        medirOperacao(dados, n, operacao, i);
+    }
+}
+
     /**
      * Benchmark de referência por operação.
      */
@@ -196,51 +202,65 @@ public abstract class Bench {
      * Mede ADD em bloco.
      */
     protected ResultadoOperacao medirAdd(List<Integer> dados, int n, int rodada) {
-        Estrutura estrutura = criarEstrutura();
+    long tempoTotal = 0L;
+    long memoriaTotal = 0L;
 
-        long memoriaAntes = getHeapUsedBytes();
-        long inicio = System.nanoTime();
-
-        for (int i = 0; i < REPETICOES_POR_AMOSTRA; i++) {
-            int indice = (i + rodada) % dados.size();
-            estrutura.add(dados.get(indice));
-        }
-
-        long fim = System.nanoTime();
-        long memoriaDepois = getHeapUsedBytes();
-
-        long tempoMedio = (fim - inicio) / REPETICOES_POR_AMOSTRA;
-        long memoriaMedia = Math.max(0, memoriaDepois - memoriaAntes);
-
-        return new ResultadoOperacao(tempoMedio, memoriaMedia);
-    }
-
-    /**
-     * Mede SEARCH em uma estrutura previamente populada com n elementos.
-     */
-    protected ResultadoOperacao medirSearch(List<Integer> dados, int n, int rodada) {
+    for (int r = 0; r < REPETICOES_POR_AMOSTRA; r++) {
         Estrutura estrutura = criarEstrutura();
 
         for (int i = 0; i < n; i++) {
             estrutura.add(dados.get(i));
         }
 
+        int valorNovo = dados.get(n + r + rodada);
+
         long memoriaAntes = getHeapUsedBytes();
         long inicio = System.nanoTime();
-
-        for (int i = 0; i < REPETICOES_POR_AMOSTRA; i++) {
-            int indice = distribuirIndice(i + rodada, REPETICOES_POR_AMOSTRA, n);
-            estrutura.search(dados.get(indice));
-        }
-
+        estrutura.add(valorNovo);
         long fim = System.nanoTime();
         long memoriaDepois = getHeapUsedBytes();
 
-        long tempoMedio = (fim - inicio) / REPETICOES_POR_AMOSTRA;
-        long memoriaMedia = Math.max(0, memoriaDepois - memoriaAntes);
-
-        return new ResultadoOperacao(tempoMedio, memoriaMedia);
+        tempoTotal += (fim - inicio);
+        memoriaTotal += Math.max(0, memoriaDepois - memoriaAntes);
     }
+
+    long tempoMedio = tempoTotal / REPETICOES_POR_AMOSTRA;
+    long memoriaMedia = memoriaTotal / REPETICOES_POR_AMOSTRA;
+
+    return new ResultadoOperacao(tempoMedio, memoriaMedia);
+}
+
+    /**
+     * Mede SEARCH em uma estrutura previamente populada com n elementos.
+     */
+    protected ResultadoOperacao medirSearch(List<Integer> dados, int n, int rodada) {
+    long tempoTotal = 0L;
+    long memoriaTotal = 0L;
+
+    for (int r = 0; r < REPETICOES_POR_AMOSTRA; r++) {
+        Estrutura estrutura = criarEstrutura();
+
+        for (int i = 0; i < n; i++) {
+            estrutura.add(dados.get(i));
+        }
+
+        int valorBusca = dados.get(n - 1);
+
+        long memoriaAntes = getHeapUsedBytes();
+        long inicio = System.nanoTime();
+        estrutura.search(valorBusca);
+        long fim = System.nanoTime();
+        long memoriaDepois = getHeapUsedBytes();
+
+        tempoTotal += (fim - inicio);
+        memoriaTotal += Math.max(0, memoriaDepois - memoriaAntes);
+    }
+
+    long tempoMedio = tempoTotal / REPETICOES_POR_AMOSTRA;
+    long memoriaMedia = memoriaTotal / REPETICOES_POR_AMOSTRA;
+
+    return new ResultadoOperacao(tempoMedio, memoriaMedia);
+}
 
     /**
      * Mede REMOVE de forma unitária.
@@ -250,42 +270,33 @@ public abstract class Bench {
      * e não o custo acumulado de uma sequência de remoções.</p>
      */
     protected ResultadoOperacao medirRemove(List<Integer> dados, int n, int rodada) {
-        Random randomizador = new Random(97L * n + rodada);
+    long tempoTotal = 0L;
+    long memoriaTotal = 0L;
 
-        long tempoTotal = 0L;
-        long memoriaTotal = 0L;
+    for (int r = 0; r < REPETICOES_REMOVE; r++) {
+        Estrutura estrutura = criarEstrutura();
 
-        for (int r = 0; r < REPETICOES_REMOVE; r++) {
-            Estrutura estrutura = criarEstrutura();
-
-            for (int i = 0; i < n; i++) {
-                estrutura.add(dados.get(i));
-            }
-
-            int indice = randomizador.nextInt(n);
-            int valor = dados.get(indice);
-
-            long memoriaAntes = getHeapUsedBytes();
-            long inicio = System.nanoTime();
-            estrutura.remove(valor);
-            long fim = System.nanoTime();
-            long memoriaDepois = getHeapUsedBytes();
-
-            tempoTotal += (fim - inicio);
-            memoriaTotal += Math.max(0, memoriaDepois - memoriaAntes);
+        for (int i = 0; i < n; i++) {
+            estrutura.add(dados.get(i));
         }
 
-        long tempoMedio = tempoTotal / REPETICOES_REMOVE;
-        long memoriaMedia = memoriaTotal / REPETICOES_REMOVE;
+        int valor = dados.get(n - 1);
 
-        return new ResultadoOperacao(tempoMedio, memoriaMedia);
+        long memoriaAntes = getHeapUsedBytes();
+        long inicio = System.nanoTime();
+        estrutura.remove(valor);
+        long fim = System.nanoTime();
+        long memoriaDepois = getHeapUsedBytes();
+
+        tempoTotal += (fim - inicio);
+        memoriaTotal += Math.max(0, memoriaDepois - memoriaAntes);
     }
 
-    protected void executarWarmupOperacao(List<Integer> dados, int n, Operacao operacao) {
-        for (int i = 0; i < RODADAS_WARMUP; i++) {
-            medirOperacao(dados, n, operacao, i);
-        }
-    }
+    long tempoMedio = tempoTotal / REPETICOES_REMOVE;
+    long memoriaMedia = memoriaTotal / REPETICOES_REMOVE;
+
+    return new ResultadoOperacao(tempoMedio, memoriaMedia);
+}
 
     /**
      * Workload misto.
