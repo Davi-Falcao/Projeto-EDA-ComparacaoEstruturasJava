@@ -1,6 +1,6 @@
 package dev.ProjetoEDA.model;
 
-public class PV {
+public class PV implements Estrutura {
 
     private NodePv root;
     private final NodePv nil;
@@ -32,10 +32,6 @@ public class PV {
             this.color = 1;
         }
     }
-
-    /* =========================
-       ROTAÇÕES
-    ========================= */
 
     private void leftRotate(NodePv x) {
         NodePv y = x.right;
@@ -78,24 +74,18 @@ public class PV {
     }
 
     private void fixInsert(NodePv k) {
-
         NodePv u;
 
         while (k.parent.color == 1) {
-
             if (k.parent == k.parent.parent.right) {
-
                 u = k.parent.parent.left;
 
                 if (u.color == 1) {
-
                     u.color = 0;
                     k.parent.color = 0;
                     k.parent.parent.color = 1;
                     k = k.parent.parent;
-
                 } else {
-
                     if (k == k.parent.left) {
                         k = k.parent;
                         rightRotate(k);
@@ -107,18 +97,14 @@ public class PV {
                 }
 
             } else {
-
                 u = k.parent.parent.right;
 
                 if (u.color == 1) {
-
                     u.color = 0;
                     k.parent.color = 0;
                     k.parent.parent.color = 1;
                     k = k.parent.parent;
-
                 } else {
-
                     if (k == k.parent.right) {
                         k = k.parent;
                         leftRotate(k);
@@ -138,14 +124,12 @@ public class PV {
     }
 
     public void insert(int key) {
-
         NodePv node = new NodePv(key);
 
         NodePv y = nil;
         NodePv x = root;
 
         while (x != nil) {
-
             y = x;
 
             if (node.value < x.value)
@@ -164,7 +148,6 @@ public class PV {
             y.right = node;
 
         if (node.parent == nil) {
-
             node.color = 0;
             size++;
             return;
@@ -184,7 +167,6 @@ public class PV {
     }
 
     private NodePv searchTreeHelper(NodePv node, int key) {
-
         if (node == nil || key == node.value)
             return node;
 
@@ -194,16 +176,17 @@ public class PV {
         return searchTreeHelper(node.right, key);
     }
 
+    @Override
     public boolean search(int key) {
         return searchTree(key) != nil;
     }
 
-    public void remove(int key) {
-
+    @Override
+    public boolean remove(int key) {
         NodePv z = searchTree(key);
 
         if (z == nil)
-            return;
+            return false;
 
         NodePv y = z;
         NodePv x;
@@ -211,26 +194,21 @@ public class PV {
         int yOriginalColor = y.color;
 
         if (z.left == nil) {
-
             x = z.right;
             transplant(z, z.right);
 
         } else if (z.right == nil) {
-
             x = z.left;
             transplant(z, z.left);
 
         } else {
-
             y = minimum(z.right);
             yOriginalColor = y.color;
             x = y.right;
 
             if (y.parent == z)
                 x.parent = y;
-
             else {
-
                 transplant(y, y.right);
                 y.right = z.right;
                 y.right.parent = y;
@@ -246,20 +224,17 @@ public class PV {
             fixDelete(x);
 
         size--;
+        return true;
     }
 
     private void fixDelete(NodePv x) {
-
         NodePv s;
 
         while (x != root && x.color == 0) {
-
             if (x == x.parent.left) {
-
                 s = x.parent.right;
 
                 if (s.color == 1) {
-
                     s.color = 0;
                     x.parent.color = 1;
                     leftRotate(x.parent);
@@ -267,14 +242,11 @@ public class PV {
                 }
 
                 if (s.left.color == 0 && s.right.color == 0) {
-
                     s.color = 1;
                     x = x.parent;
 
                 } else {
-
                     if (s.right.color == 0) {
-
                         s.left.color = 0;
                         s.color = 1;
                         rightRotate(s);
@@ -289,11 +261,9 @@ public class PV {
                 }
 
             } else {
-
                 s = x.parent.left;
 
                 if (s.color == 1) {
-
                     s.color = 0;
                     x.parent.color = 1;
                     rightRotate(x.parent);
@@ -301,14 +271,11 @@ public class PV {
                 }
 
                 if (s.left.color == 0 && s.right.color == 0) {
-
                     s.color = 1;
                     x = x.parent;
 
                 } else {
-
                     if (s.left.color == 0) {
-
                         s.right.color = 0;
                         s.color = 1;
                         leftRotate(s);
@@ -328,13 +295,10 @@ public class PV {
     }
 
     private void transplant(NodePv u, NodePv v) {
-
         if (u.parent == nil)
             root = v;
-
         else if (u == u.parent.left)
             u.parent.left = v;
-
         else
             u.parent.right = v;
 
@@ -342,15 +306,16 @@ public class PV {
     }
 
     private NodePv minimum(NodePv node) {
-
         while (node.left != nil)
             node = node.left;
 
         return node;
     }
 
-    public void add(int key) {
+    @Override
+    public boolean add(int key) {
         insert(key);
+        return true;
     }
 
     public int size() {

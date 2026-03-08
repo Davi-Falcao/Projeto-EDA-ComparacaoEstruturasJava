@@ -1,55 +1,56 @@
 package dev.ProjetoEDA.controller;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
 
-import dev.ProjetoEDA.model.LinkeList;
+import dev.ProjetoEDA.service.bench.Bench;
+// import dev.ProjetoEDA.service.bench.BenchAVL;
+import dev.ProjetoEDA.service.bench.BenchArrayList;
+// import dev.ProjetoEDA.service.bench.BenchBST;
+// import dev.ProjetoEDA.service.bench.BenchHeap;
+// import dev.ProjetoEDA.service.bench.BenchLinkedList;
+// import dev.ProjetoEDA.service.bench.BenchPV;
+// import dev.ProjetoEDA.service.bench.BenchPriorityQueue;
 
-
+/**
+ * Controller responsável por selecionar a estrutura
+ * e executar todos os benchmarks associados.
+ */
 public class BenchController {
-    
+
     /**
-     * Método principal para escolher e executar o benchmark com base no caso fornecido,
-     * e chamar o método específico para cada estrutura de dados.
-     * 
-     * @param args Argumentos passados pela linha de comando, nesse caso é o nome do benchmark.
+     * Executa todos os benchmarks da estrutura informada.
+     *
+     * @param estrutura nome da estrutura
+     * @param tamanhoEntrada tamanho máximo da entrada
      */
-   
-    public static void escolherOCaso(String caso) {
-        switch (caso) {
+    public void executar(String estrutura, int tamanhoEntrada) {
+        Bench bench = criarBench(estrutura);
+        bench.definirEntrada(tamanhoEntrada);
+        bench.run();
+    }
+
+    /**
+     * Cria a instância de benchmark da estrutura escolhida.
+     *
+     * @param estrutura nome da estrutura
+     * @return benchmark correspondente
+     */
+    private Bench criarBench(String estrutura) {
+        switch (estrutura.toLowerCase()) {
             case "arraylist":
-                Estruturas benchArrayList = new benchArrayList();
-                benchArrayList.run();
-                break;
-            case "linkedlist":
-                Estruturas benchLinkedList = new benchLinkedList();
-                benchLinkedList.run();
-                break;
-            case "heap":
-                Estruturas benchHeap = new benchHeap();
-                benchHeap.run();
-                break;
-            case "filaPrioridade":
-                Estruturas benchFilaPrioridade = new benchFilaPrioridade();
-                benchFilaPrioridade.run();
-                break;
-            case "avl":
-                Estruturas benchAVL = new benchAVL();
-                benchAVL.run();
-                break;
-            case "bst":
-                Estruturas benchBST = new benchBST();
-                benchBST.run();
-                break;
-            case "pv":
-                Estruturas benchPV = new benchPV();
-                benchPV.run();
-                break;
-        default:
-            System.err.println("Benchmark desconhecido: " + caso);
+                return new BenchArrayList();
+            // case "linkedlist":
+            //     return new BenchLinkedList();
+            // case "heap":
+            //     return new BenchHeap();
+            // case "priorityqueue":
+            //     return new BenchPriorityQueue();
+            // case "avl":
+            //     return new BenchAVL();
+            // case "bst":
+            //     return new BenchBST();
+            // case "pv":
+            //     return new BenchPV();
+            default:
+                throw new IllegalArgumentException("Benchmark desconhecido: " + estrutura);
         }
     }
 }

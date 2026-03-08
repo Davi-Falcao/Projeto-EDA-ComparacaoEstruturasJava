@@ -1,7 +1,8 @@
 package dev.ProjetoEDA.model;
+
 import java.util.Arrays;
 
-public class Heap {
+public class Heap implements Estrutura {
 
     private int[] heap;
     private int tail;
@@ -10,6 +11,7 @@ public class Heap {
         this.heap = new int[20];
         this.tail = -1;
     }
+
     public Heap(int capacidade) {
         this.heap = new int[capacidade];
         this.tail = -1;
@@ -42,7 +44,8 @@ public class Heap {
         return Math.floorDiv(i-1, 2);
     }
 
-    public void add(int n) {
+    @Override
+    public boolean add(int n) {
         if (tail >= (heap.length - 1))
             resize();
 
@@ -56,6 +59,8 @@ public class Heap {
             this.heap[parent(i)] = aux;
             i = parent(i);
         }
+
+        return true;
     }
 
     public int remove() {
@@ -63,24 +68,49 @@ public class Heap {
         int element = this.heap[0];
         this.heap[0] = this.heap[tail];
         this.tail -= 1;
-
         this.heapify(0);
-
         return element;
+    }
+
+    @Override
+    public boolean remove(int element) {
+        for (int i = 0; i <= tail; i++) {
+            if (heap[i] == element) {
+                heap[i] = heap[tail];
+                tail -= 1;
+                if (i <= tail) {
+                    int current = i;
+                    while (current > 0 && heap[parent(current)] < heap[current]) {
+                        swap(current, parent(current));
+                        current = parent(current);
+                    }
+                    heapify(current);
+                }
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public boolean search(int element) {
+        for (int i = 0; i <= tail; i++) {
+            if (heap[i] == element) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void heapify(int index) {
         if (isLeaf(index) || !isValidIndex(index))
             return;
 
-        // compares index, left and right to find max
         int index_max = max_index(index, left(index), right(index));
 
-        // if current index is not greater than its children,
-        // swap and keep heapifying.
         if (index_max != index) {
-                swap(index, index_max);
-                heapify(index_max);
+            swap(index, index_max);
+            heapify(index_max);
         }
     }
 
@@ -131,5 +161,4 @@ public class Heap {
     public String toString() {
         return Arrays.toString(this.heap);
     }
-
 }

@@ -3,46 +3,56 @@ package dev.ProjetoEDA;
 import dev.ProjetoEDA.controller.BenchController;
 
 /**
- * Classe principal responsável por selecionar e executar benchmarks.
- * A execução é realizada via argumentos passados pelo Maven.
+ * Classe principal responsável por disparar todos os benchmarks
+ * de uma estrutura a partir da linha de comando.
+ *
+ * <p>Uso:
+ * <pre>
+ * mvn exec:java "-Dexec.args=arraylist 100000"
+ * </pre>
+ * </p>
  */
 public class App {
 
-    public static void main(String[] args) throws Exception {
-        if (args.length == 0) {
-            System.err.println("Nenhum benchmark especificado.");
-            exibirMenu();
+    /**
+     * Método principal da aplicação.
+     *
+     * @param args argumentos da linha de comando
+     */
+    public static void main(String[] args) {
+        if (args.length < 2) {
+            System.err.println("Uso: <estrutura> <tamanhoEntrada>");
+            System.err.println("Exemplo: arraylist 100000");
             return;
         }
 
-        exibirMenu();
-        String benchmark = args[0].trim().toLowerCase();
-        executarBenchmark(benchmark);
+        String estrutura = args[0].trim().toLowerCase();
+        int tamanhoEntrada;
+
+        try {
+            tamanhoEntrada = Integer.parseInt(args[1].trim());
+        } catch (NumberFormatException e) {
+            System.err.println("O tamanho da entrada deve ser um número inteiro válido.");
+            return;
+        }
+
+        executarBenchmark(estrutura, tamanhoEntrada);
     }
 
-    private static void exibirMenu() {
-        System.out.println("==============================================================");
-        System.out.println("        SELETOR DE BENCHMARKS - EDA COMPARAÇÃO JAVA          ");
-        System.out.println("==============================================================");
-        System.out.println("Uso:");
-        System.out.println("  mvn exec:java -Papp -Dexec.args=\"arraylist\"");
-        System.out.println("Exemplo:");
-        System.out.println("  mvn exec:java -Papp -Dexec.args=\"arraylist\"");
-        System.out.println("PowerShell:");
-        System.out.println("  mvn exec:java -Papp \"-Dexec.args=arraylist \"");
-        System.out.println("==============================================================");
-    }
     /**
-     * Executa o benchmark selecionado para a estrutura especificada.
+     * Executa todos os benchmarks da estrutura escolhida.
      *
-     * @param benchmark Nome do benchmark a ser executado.
-     * @throws Exception Caso ocorra erro durante a execução do benchmark ou no processamento dos arquivos temporários.
+     * @param estrutura nome da estrutura
+     * @param tamanhoEntrada tamanho máximo da entrada
      */
-    private static void executarBenchmark(String benchmark) {
+    private static void executarBenchmark(String estrutura, int tamanhoEntrada) {
         try {
-            BenchController bController = new BenchController();
-            bController.escolherOCaso(benchmark);    
-        
-        } catch (Exception e) {}
+            BenchController controller = new BenchController();
+            controller.executar(estrutura, tamanhoEntrada);
+        } catch (IllegalArgumentException e) {
+            System.err.println(e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.LinkedList;
 
-public class AVL {
+public class AVL implements Estrutura {
 
     private Node root;
     private int size;
@@ -39,18 +39,14 @@ public class AVL {
     }
 
     private void rotate(Node des) {
-
         if (balance(des) >= 2) {
-
             if (balance(des.left) >= 0) {
                 rotacaoDireita(des);
             } else {
                 rotacaoEsquerda(des.left);
                 rotacaoDireita(des);
             }
-
         } else if (balance(des) <= -2) {
-
             if (balance(des.right) <= 0) {
                 rotacaoEsquerda(des);
             } else {
@@ -61,7 +57,6 @@ public class AVL {
     }
 
     private void rotacaoDireita(Node n) {
-
         Node x = n;
         Node y = x.left;
 
@@ -84,7 +79,6 @@ public class AVL {
     }
 
     private void rotacaoEsquerda(Node n) {
-
         Node x = n;
         Node y = x.right;
 
@@ -106,19 +100,15 @@ public class AVL {
         x.parent = y;
     }
 
-    // ======= SEARCH para interface (boolean) =======
-
+    @Override
     public boolean search(int element) {
         return searchNode(element) != null;
     }
 
-    // seu search antigo (Node) renomeado
     public Node searchNode(int element) {
-
         Node aux = this.root;
 
         while (aux != null) {
-
             if (element == aux.value)
                 return aux;
 
@@ -135,48 +125,36 @@ public class AVL {
         return this.root == null;
     }
 
-    public void add(int element) {
-
+    @Override
+    public boolean add(int element) {
         if (isEmpty()) {
             this.root = new Node(element);
             size++;
-            return;
+            return true;
         }
 
         Node aux = this.root;
 
         while (true) {
-
             if (element < aux.value) {
-
                 if (aux.left == null) {
-
                     Node newNode = new Node(element);
                     aux.left = newNode;
                     newNode.parent = aux;
-
                     size++;
-
                     rebalanceUp(newNode);
-
-                    return;
+                    return true;
                 }
 
                 aux = aux.left;
-
             } else {
-
                 if (aux.right == null) {
-
                     Node newNode = new Node(element);
                     aux.right = newNode;
                     newNode.parent = aux;
-
                     size++;
-
                     rebalanceUp(newNode);
-
-                    return;
+                    return true;
                 }
 
                 aux = aux.right;
@@ -185,23 +163,20 @@ public class AVL {
     }
 
     private void rebalanceUp(Node node) {
-
         Node current = node;
 
         while (current != null) {
-
             rotate(current);
-
             current = current.parent;
         }
     }
 
-    public void remove(int value) {
-
+    @Override
+    public boolean remove(int value) {
         Node toRemove = searchNode(value);
 
         if (toRemove == null)
-            return;
+            return false;
 
         Node parent = toRemove.parent;
 
@@ -210,12 +185,11 @@ public class AVL {
         size--;
 
         rebalanceUp(parent);
+        return true;
     }
 
     private void removeNode(Node node) {
-
         if (node.isLeaf()) {
-
             if (node == root)
                 root = null;
             else if (node == node.parent.left)
@@ -224,14 +198,12 @@ public class AVL {
                 node.parent.right = null;
 
         } else if (node.hasOnlyLeftChild()) {
-
             Node child = node.left;
 
             if (node == root) {
                 root = child;
                 child.parent = null;
             } else {
-
                 if (node == node.parent.left)
                     node.parent.left = child;
                 else
@@ -241,14 +213,12 @@ public class AVL {
             }
 
         } else if (node.hasOnlyRightChild()) {
-
             Node child = node.right;
 
             if (node == root) {
                 root = child;
                 child.parent = null;
             } else {
-
                 if (node == node.parent.left)
                     node.parent.left = child;
                 else
@@ -258,7 +228,6 @@ public class AVL {
             }
 
         } else {
-
             Node sucessor = sucessor(node);
 
             node.value = sucessor.value;
@@ -282,7 +251,6 @@ public class AVL {
     }
 
     public Node predecessor(Node node) {
-
         if (node.left != null)
             return max(node.left);
 
@@ -297,7 +265,6 @@ public class AVL {
     }
 
     public Node sucessor(Node node) {
-
         if (node.right != null)
             return min(node.right);
 
@@ -312,7 +279,6 @@ public class AVL {
     }
 
     public ArrayList<Integer> bfs() {
-
         ArrayList<Integer> list = new ArrayList<>();
 
         if (root == null)
@@ -323,7 +289,6 @@ public class AVL {
         queue.add(root);
 
         while (!queue.isEmpty()) {
-
             Node current = queue.remove();
 
             list.add(current.value);
@@ -355,7 +320,6 @@ public class AVL {
     }
 
     class Node {
-
         int value;
         Node left;
         Node right;
