@@ -1,0 +1,12 @@
+dev\ProjetoEDA\model\Node.class
+dev\ProjetoEDA\model\PV.class
+dev\ProjetoEDA\model\PV$NodePv.class
+dev\ProjetoEDA\model\Heap.class
+dev\ProjetoEDA\model\LinkedList.class
+dev\ProjetoEDA\model\PriorityQueue.class
+dev\ProjetoEDA\model\ArrayList.class
+dev\ProjetoEDA\model\AVL.class
+dev\ProjetoEDA\model\Estrutura.class
+dev\ProjetoEDA\model\BST$Node.class
+dev\ProjetoEDA\model\BST.class
+dev\ProjetoEDA\model\AVL$Node.class

@@ -9,6 +9,7 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import dev.ProjetoEDA.model.Estrutura;
 
@@ -24,6 +25,14 @@ public abstract class Bench {
     private static boolean dadosCarregados = false;
 
     public abstract void run();
+
+    public void definirEntrada(int tamanhoEntrada) {
+        if (tamanhoEntrada <= 0) {
+            throw new IllegalArgumentException("O tamanho da entrada deve ser maior que zero.");
+        }
+
+        entrada = tamanhoEntrada;
+    }
 
     protected void experimento(int tamanhoEntrada, String ordem, String casoTest) {
         List<Integer> dados = getDadosPorOrdem(ordem);
@@ -238,32 +247,39 @@ public abstract class Bench {
         random = carregarInteiros("src/main/java/dev/ProjetoEDA/repository/entry/entradaRandomUnica.csv");
         crescente = carregarInteiros("src/main/java/dev/ProjetoEDA/repository/entry/entradaCrescenteUnica.csv");
         decrescente = carregarInteiros("src/main/java/dev/ProjetoEDA/repository/entry/entradaDecrescenteUnica.csv");
-        entrada = carregarInteiroUnico("src/main/java/dev/ProjetoEDA/repository/entry/tamanhoEntrada.csv");
+
+        if (entrada <= 0) {
+            entrada = carregarInteiroUnico("src/main/java/dev/ProjetoEDA/repository/entry/tamanhoEntradaPadrao.csv");
+        }
 
         dadosCarregados = true;
     }
 
-    protected List<Integer> carregarInteiros(String path) throws IOException {
-        return Files.readAllLines(Paths.get(path))
-                .stream()
+    private Stream<String> streamLinhasNumericas(String path) throws IOException {
+        return Files.lines(Paths.get(path))
                 .map(String::trim)
                 .filter(linha -> !linha.isEmpty())
                 .filter(linha -> !linha.matches(".*[a-zA-Z].*"))
-                .map(linha -> linha.split(",")[0].trim())
-                .map(Integer::parseInt)
-                .collect(Collectors.toList());
+                .map(linha -> linha.split(",")[0].trim());
+    }
+
+    protected List<Integer> carregarInteiros(String path) throws IOException {
+        try (Stream<String> linhas = streamLinhasNumericas(path)) {
+            return linhas
+                    .map(Integer::parseInt)
+                    .collect(Collectors.toList());
+        }
     }
 
     protected int carregarInteiroUnico(String path) throws IOException {
-        return Files.readAllLines(Paths.get(path))
-                .stream()
-                .map(String::trim)
-                .filter(linha -> !linha.isEmpty())
-                .filter(linha -> !linha.matches(".*[a-zA-Z].*"))
-                .map(linha -> linha.split(",")[0].trim())
-                .mapToInt(Integer::parseInt)
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Arquivo entradas.csv vazio"));
+        try (Stream<String> linhas = streamLinhasNumericas(path)) {
+            return linhas
+                    .mapToInt(Integer::parseInt)
+                    .findFirst()
+                    .orElseThrow(() -> new IllegalArgumentException(
+                            "Arquivo vazio ou sem inteiro válido: " + path
+                    ));
+        }
     }
 
     protected long calcularMediana(long[] valores) {

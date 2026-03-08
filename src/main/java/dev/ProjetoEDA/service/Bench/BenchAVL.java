@@ -1,10 +1,10 @@
 package dev.ProjetoEDA.service.bench;
 
-import dev.ProjetoEDA.model.ArrayList;
+import dev.ProjetoEDA.model.AVL;
 import dev.ProjetoEDA.model.Estrutura;
 
 
-public class BenchArrayList extends Bench {
+public class BenchAVL extends Bench {
 
     @Override
     public void run() {
@@ -30,12 +30,12 @@ public class BenchArrayList extends Bench {
 
     @Override
     protected Estrutura criarEstrutura() {
-        Estrutura estrutura = new ArrayList();
+        Estrutura estrutura = new AVL();
         return estrutura;
     }
 
     @Override
     protected String getNomeEstrutura() {
-        return "ArrayList";
+        return "AVL";
     }
 }
