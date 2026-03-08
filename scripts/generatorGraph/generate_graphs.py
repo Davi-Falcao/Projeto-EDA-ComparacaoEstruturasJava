@@ -2,17 +2,12 @@ import os
 import argparse
 from plot_util import plot_time_csv, plot_mem_csv
 
-INPUT_DIR = "src/main/java/dev/ProjetoEDA/repository/results/"
-OUTPUT_DIR = "src/main/java/dev/ProjetoEDA/repository/Graphs"
+INPUT_DIR = "src/main/java/dev/ProjetoEDA/repository/results"
+OUTPUT_DIR = "src/main/java/dev/ProjetoEDA/repository/graphs"
 
 
 
 def extrair_info_nome_arquivo(csv_path):
-    """
-    Espera nomes no formato:
-    result_<Estrutura>_<ordem>_<caso>.csv
-    """
-
     nome_arquivo = os.path.basename(csv_path)
     nome_sem_ext = os.path.splitext(nome_arquivo)[0]
 
@@ -36,17 +31,17 @@ def extrair_info_nome_arquivo(csv_path):
 def gerar_graficos(csv_path):
     estrutura, ordem, caso = extrair_info_nome_arquivo(csv_path)
 
-    pasta_saida = os.path.join(OUTPUT_DIR, estrutura)
+    pasta_saida = os.path.join(OUTPUT_DIR, estrutura.lower())
     os.makedirs(pasta_saida, exist_ok=True)
 
     tempo_output = os.path.join(
         pasta_saida,
-        f"{estrutura}_{ordem}_{caso}_tempo.png"
+        f"{estrutura.lower()}_{ordem}_{caso}_tempo.png"
     )
 
     memoria_output = os.path.join(
         pasta_saida,
-        f"{estrutura}_{ordem}_{caso}_memoria.png"
+        f"{estrutura.lower()}_{ordem}_{caso}_memoria.png"
     )
 
     plot_time_csv(csv_path, tempo_output)
@@ -56,15 +51,31 @@ def gerar_graficos(csv_path):
 
 
 
-def listar_csvs():
+def listar_csvs(nome_estrutura=None):
     arquivos = []
+
+    if nome_estrutura:
+        pasta_estrutura = os.path.join(INPUT_DIR, nome_estrutura.lower())
+
+        if not os.path.exists(pasta_estrutura):
+            raise FileNotFoundError(f"Diretório não encontrado: {pasta_estrutura}")
+
+        for arquivo in os.listdir(pasta_estrutura):
+            if arquivo.lower().endswith(".csv"):
+                arquivos.append(os.path.join(pasta_estrutura, arquivo))
+
+        return arquivos
 
     if not os.path.exists(INPUT_DIR):
         raise FileNotFoundError(f"Diretório não encontrado: {INPUT_DIR}")
 
-    for arquivo in os.listdir(INPUT_DIR):
-        if arquivo.lower().endswith(".csv"):
-            arquivos.append(os.path.join(INPUT_DIR, arquivo))
+    for pasta in os.listdir(INPUT_DIR):
+        caminho_pasta = os.path.join(INPUT_DIR, pasta)
+
+        if os.path.isdir(caminho_pasta):
+            for arquivo in os.listdir(caminho_pasta):
+                if arquivo.lower().endswith(".csv"):
+                    arquivos.append(os.path.join(caminho_pasta, arquivo))
 
     return arquivos
 
@@ -80,17 +91,11 @@ def gerar_todos():
 
 
 def gerar_por_estrutura(nome_estrutura):
-    encontrados = []
-
-    for caminho in listar_csvs():
-        try:
-            estrutura, _, _ = extrair_info_nome_arquivo(caminho)
-
-            if estrutura.lower() == nome_estrutura.lower():
-                encontrados.append(caminho)
-
-        except Exception as e:
-            print(f"[ERRO] {os.path.basename(caminho)} -> {e}")
+    try:
+        encontrados = listar_csvs(nome_estrutura)
+    except Exception as e:
+        print(f"[ERRO] {e}")
+        return
 
     if not encontrados:
         print(f"Nenhum CSV encontrado para a estrutura: {nome_estrutura}")
@@ -112,7 +117,7 @@ def main():
     parser.add_argument(
         "estrutura",
         nargs="?",
-        help="Nome da estrutura para gerar todos os gráficos dela. Ex: ArrayList, BST, AVL"
+        help="Nome da estrutura para gerar todos os gráficos dela. Ex: arraylist, bst, avl"
     )
 
     args = parser.parse_args()
