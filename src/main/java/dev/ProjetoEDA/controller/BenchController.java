@@ -1,12 +1,13 @@
 package dev.ProjetoEDA.controller;
 
 import dev.ProjetoEDA.service.bench.Bench;
+import dev.ProjetoEDA.service.bench.BenchAVL;
 import dev.ProjetoEDA.service.bench.BenchArrayList;
-// import dev.ProjetoEDA.service.bench.BenchBST;
-// import dev.ProjetoEDA.service.bench.BenchHeap;
-// import dev.ProjetoEDA.service.bench.BenchLinkedList;
-// import dev.ProjetoEDA.service.bench.BenchPV;
-// import dev.ProjetoEDA.service.bench.BenchPriorityQueue;
+import dev.ProjetoEDA.service.bench.BenchBST;
+import dev.ProjetoEDA.service.bench.BenchHeap;
+import dev.ProjetoEDA.service.bench.BenchLinkedList;
+import dev.ProjetoEDA.service.bench.BenchPV;
+import dev.ProjetoEDA.service.bench.BenchPriorityQueue;
 
 /**
  * Controller responsável por selecionar a estrutura
@@ -36,18 +37,18 @@ public class BenchController {
         switch (estrutura.toLowerCase()) {
             case "arraylist":
                 return new BenchArrayList();
-            // case "linkedlist":
-            //     return new BenchLinkedList();
-            // case "heap":
-            //     return new BenchHeap();
-            // case "priorityqueue":
-            //     return new BenchPriorityQueue();
-            // case "avl":
-            //     return new BenchAVL();
-            // case "bst":
-            //     return new BenchBST();
-            // case "pv":
-            //     return new BenchPV();
+             case "linkedlist":
+                 return new BenchLinkedList();
+             case "heap":
+                 return new BenchHeap();
+             case "priorityqueue":
+                 return new BenchPriorityQueue();
+             case "avl":
+                 return new BenchAVL();
+             case "bst":
+                 return new BenchBST();
+             case "pv":
+                 return new BenchPV();
             default:
                 throw new IllegalArgumentException("Benchmark desconhecido: " + estrutura);
         }
