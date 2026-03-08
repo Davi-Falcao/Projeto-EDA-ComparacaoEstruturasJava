@@ -13,17 +13,37 @@ import java.util.stream.Stream;
 
 import dev.ProjetoEDA.model.Estrutura;
 
+/**
+ * Classe abstrata responsável por definir a estrutura base
+ * para execução de benchmarks das estruturas de dados.
+ *
+ * Esta classe controla:
+ * - carregamento das entradas
+ * - execução dos experimentos
+ * - medição de tempo e memória
+ * - gravação dos resultados em arquivos CSV
+ */
 public abstract class Bench {
 
+    /** Lista de entrada em ordem aleatória. */
     protected static List<Integer> random;
+
+    /** Lista de entrada em ordem crescente. */
     protected static List<Integer> crescente;
+
+    /** Lista de entrada em ordem decrescente. */
     protected static List<Integer> decrescente;
+
+    /** Tamanho total da entrada utilizada no experimento. */
     protected static int entrada;
 
+    /** Número de repetições de cada medição. */
     protected static final int REPETICOES = 10;
 
+    /** Indica se os dados já foram carregados. */
     private static boolean dadosCarregados = false;
 
+    /** Método que inicia a execução do benchmark. */
     public abstract void run();
 
     public void definirEntrada(int tamanhoEntrada) {
@@ -39,19 +59,23 @@ public abstract class Bench {
         String resultFilePath = gerarPathArquivoSaida(ordem, casoTest);
 
         for (int passo = 1; passo <= tamanhoEntrada; passo++) {
+            int passoAtual = passo - 1;
+
             long[] tempos = new long[REPETICOES];
             long[] memorias = new long[REPETICOES];
-            char operacao = descobrirOperacao(casoTest, passo - 1, tamanhoEntrada);
+
+            char operacao = descobrirOperacao(casoTest, passoAtual, tamanhoEntrada);
+            int indiceOperacao = descobrirIndiceOperacao(casoTest, passoAtual, tamanhoEntrada);
 
             for (int repeticao = 0; repeticao < REPETICOES; repeticao++) {
                 Estrutura estrutura = criarEstrutura();
 
-                executarPassosAte(estrutura, dados, passo - 1, tamanhoEntrada, casoTest);
+                executarPassosAte(estrutura, dados, passoAtual, tamanhoEntrada, casoTest);
 
                 long memoriaAntes = getProcessRssBytes();
                 long tempoAntes = System.nanoTime();
 
-                executarPasso(estrutura, dados, passo - 1, tamanhoEntrada, casoTest);
+                executarPasso(estrutura, dados, passoAtual, tamanhoEntrada, casoTest);
 
                 long tempoDepois = System.nanoTime();
                 long memoriaDepois = getProcessRssBytes();
@@ -65,7 +89,7 @@ public abstract class Bench {
 
             gravarDadosArquivoSaida(
                     resultFilePath,
-                    passo,
+                    indiceOperacao,
                     operacao,
                     calcularMediana(tempos),
                     calcularMediana(memorias)
@@ -73,12 +97,18 @@ public abstract class Bench {
         }
     }
 
+    /**
+     * Executa todos os casos de teste para uma determinada ordem de dados.
+     */
     protected void executarPorOrdem(String ordem, String[] casos) {
         for (String caso : casos) {
             experimento(entrada, ordem, caso);
         }
     }
 
+    /**
+     * Executa todos os passos anteriores ao passo atual do experimento.
+     */
     protected void executarPassosAte(
             Estrutura estrutura,
             List<Integer> dados,
@@ -91,6 +121,9 @@ public abstract class Bench {
         }
     }
 
+    /**
+     * Executa uma única operação do experimento (insert, remove ou search).
+     */
     protected void executarPasso(
             Estrutura estrutura,
             List<Integer> dados,
@@ -99,24 +132,30 @@ public abstract class Bench {
             String casoTest
     ) {
         switch (casoTest) {
+
             case "100I0R0S":
                 estrutura.add(dados.get(passo));
                 break;
 
             case "50I50R0S":
-                if (passo < tamanhoEntrada / 2) {
-                    estrutura.add(dados.get(passo));
+                int metade = tamanhoEntrada / 2;
+                if (passo < metade) {
+                    int indiceInsercao = passo;
+                    estrutura.add(dados.get(indiceInsercao));
                 } else {
-                    estrutura.remove(dados.get(passo - (tamanhoEntrada / 2)));
+                    int indiceRemocao = passo - metade;
+                    estrutura.remove(dados.get(indiceRemocao));
                 }
                 break;
 
             case "75I25R0S":
                 int limiteInsercao75 = (int) (tamanhoEntrada * 0.75);
                 if (passo < limiteInsercao75) {
-                    estrutura.add(dados.get(passo));
+                    int indiceInsercao = passo;
+                    estrutura.add(dados.get(indiceInsercao));
                 } else {
-                    estrutura.remove(dados.get(passo - limiteInsercao75));
+                    int indiceRemocao = passo - limiteInsercao75;
+                    estrutura.remove(dados.get(indiceRemocao));
                 }
                 break;
 
@@ -125,11 +164,14 @@ public abstract class Bench {
                 int limiteBusca25 = (int) (tamanhoEntrada * 0.25);
 
                 if (passo < limiteInsercao50) {
-                    estrutura.add(dados.get(passo));
+                    int indiceInsercao = passo;
+                    estrutura.add(dados.get(indiceInsercao));
                 } else if (passo < limiteInsercao50 + limiteBusca25) {
-                    estrutura.search(dados.get(passo - limiteInsercao50));
+                    int indiceBusca = passo - limiteInsercao50;
+                    estrutura.search(dados.get(indiceBusca));
                 } else {
-                    estrutura.remove(dados.get(passo - limiteInsercao50 - limiteBusca25));
+                    int indiceRemocao = passo - limiteInsercao50 - limiteBusca25;
+                    estrutura.remove(dados.get(indiceRemocao));
                 }
                 break;
 
@@ -137,9 +179,11 @@ public abstract class Bench {
                 int limiteInsercao = (int) (tamanhoEntrada * 0.50);
 
                 if (passo < limiteInsercao) {
-                    estrutura.add(dados.get(passo));
+                    int indiceInsercao = passo;
+                    estrutura.add(dados.get(indiceInsercao));
                 } else {
-                    estrutura.search(dados.get(passo - limiteInsercao));
+                    int indiceBusca = passo - limiteInsercao;
+                    estrutura.search(dados.get(indiceBusca));
                 }
                 break;
 
@@ -148,8 +192,12 @@ public abstract class Bench {
         }
     }
 
+    /**
+     * Identifica qual operação está sendo executada no passo atual.
+     */
     protected char descobrirOperacao(String casoTest, int passo, int tamanhoEntrada) {
         switch (casoTest) {
+
             case "100I0R0S":
                 return 'I';
 
@@ -179,6 +227,47 @@ public abstract class Bench {
         }
     }
 
+    /**
+     * Retorna o índice local da operação dentro da fase atual.
+     */
+    protected int descobrirIndiceOperacao(String casoTest, int passo, int tamanhoEntrada) {
+        switch (casoTest) {
+
+            case "100I0R0S":
+                return passo;
+
+            case "50I50R0S":
+                int metade = tamanhoEntrada / 2;
+                return passo < metade ? passo : passo - metade;
+
+            case "75I25R0S":
+                int limiteInsercao75 = (int) (tamanhoEntrada * 0.75);
+                return passo < limiteInsercao75 ? passo : passo - limiteInsercao75;
+
+            case "50I25R25S":
+                int limiteInsercao50 = (int) (tamanhoEntrada * 0.50);
+                int limiteBusca25 = (int) (tamanhoEntrada * 0.25);
+
+                if (passo < limiteInsercao50) {
+                    return passo;
+                } else if (passo < limiteInsercao50 + limiteBusca25) {
+                    return passo - limiteInsercao50;
+                } else {
+                    return passo - limiteInsercao50 - limiteBusca25;
+                }
+
+            case "50I0R50S":
+                int limiteInsercao = (int) (tamanhoEntrada * 0.50);
+                return passo < limiteInsercao ? passo : passo - limiteInsercao;
+
+            default:
+                throw new IllegalArgumentException("Caso de teste inválido: " + casoTest);
+        }
+    }
+
+    /**
+     * Retorna os dados de entrada de acordo com a ordem escolhida.
+     */
     protected List<Integer> getDadosPorOrdem(String ordem) {
         switch (ordem) {
             case "random":
@@ -192,6 +281,9 @@ public abstract class Bench {
         }
     }
 
+    /**
+     * Gera o caminho do arquivo CSV onde os resultados serão gravados.
+     */
     protected String gerarPathArquivoSaida(String ordem, String casoTest) {
         String nomeEstrutura = getNomeEstrutura().toLowerCase();
 
@@ -200,36 +292,40 @@ public abstract class Bench {
                 + nomeEstrutura + "_" + ordem + "_" + casoTest + ".csv";
     }
 
+    /**
+     * Inicializa o arquivo de saída e escreve o cabeçalho caso esteja vazio.
+     */
     protected static BufferedWriter inicializarArquivoDeSaida(String resultFilePath) throws IOException {
         File file = new File(resultFilePath);
 
         if (!file.exists()) {
             File parent = file.getParentFile();
-            if (parent != null) {
-                parent.mkdirs();
-            }
+            if (parent != null) parent.mkdirs();
             file.createNewFile();
         }
 
         BufferedWriter writer = new BufferedWriter(new FileWriter(file, true));
 
         if (file.length() == 0) {
-            writer.write("TamanhoEntrada,Operacao,TempoExecucao(ns),MemoriaUso(bytes)\n");
+            writer.write("IndiceOperacao,Operacao,TempoExecucao(ns),MemoriaUso(bytes)\n");
         }
 
         return writer;
     }
 
+    /**
+     * Grava uma linha de resultado no arquivo CSV.
+     */
     protected void gravarDadosArquivoSaida(
             String resultFilePath,
-            int tamanhoEntrada,
+            int indiceOperacao,
             char operacao,
             long tempoMediana,
             long memoriaMediana
     ) {
         try (BufferedWriter writer = inicializarArquivoDeSaida(resultFilePath)) {
             writer.write(
-                    tamanhoEntrada + "," +
+                    indiceOperacao + "," +
                     operacao + "," +
                     tempoMediana + "," +
                     memoriaMediana + "\n"
@@ -239,10 +335,11 @@ public abstract class Bench {
         }
     }
 
+    /**
+     * Carrega os arquivos de entrada utilizados nos testes.
+     */
     protected void lerDados() throws IOException {
-        if (dadosCarregados) {
-            return;
-        }
+        if (dadosCarregados) return;
 
         random = carregarInteiros("src/main/java/dev/ProjetoEDA/repository/entry/entradaRandomUnica.csv");
         crescente = carregarInteiros("src/main/java/dev/ProjetoEDA/repository/entry/entradaCrescenteUnica.csv");
@@ -271,6 +368,9 @@ public abstract class Bench {
         }
     }
 
+    /**
+     * Lê um único valor inteiro de um arquivo.
+     */
     protected int carregarInteiroUnico(String path) throws IOException {
         try (Stream<String> linhas = streamLinhasNumericas(path)) {
             return linhas
@@ -282,6 +382,9 @@ public abstract class Bench {
         }
     }
 
+    /**
+     * Calcula a mediana de um conjunto de valores.
+     */
     protected long calcularMediana(long[] valores) {
         int meio = valores.length / 2;
 
@@ -292,12 +395,17 @@ public abstract class Bench {
         return valores[meio];
     }
 
+    /**
+     * Retorna a quantidade de memória utilizada pela JVM.
+     */
     protected long getProcessRssBytes() {
         Runtime runtime = Runtime.getRuntime();
         return runtime.totalMemory() - runtime.freeMemory();
     }
 
+    /** Retorna o nome da estrutura testada. */
     protected abstract String getNomeEstrutura();
 
+    /** Cria uma nova instância da estrutura testada. */
     protected abstract Estrutura criarEstrutura();
 }
