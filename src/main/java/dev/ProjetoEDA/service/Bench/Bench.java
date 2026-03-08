@@ -53,19 +53,23 @@ public abstract class Bench {
         String resultFilePath = gerarPathArquivoSaida(ordem, casoTest);
 
         for (int passo = 1; passo <= tamanhoEntrada; passo++) {
+            int passoAtual = passo - 1;
+
             long[] tempos = new long[REPETICOES];
             long[] memorias = new long[REPETICOES];
-            char operacao = descobrirOperacao(casoTest, passo - 1, tamanhoEntrada);
+
+            char operacao = descobrirOperacao(casoTest, passoAtual, tamanhoEntrada);
+            int indiceOperacao = descobrirIndiceOperacao(casoTest, passoAtual, tamanhoEntrada);
 
             for (int repeticao = 0; repeticao < REPETICOES; repeticao++) {
                 Estrutura estrutura = criarEstrutura();
 
-                executarPassosAte(estrutura, dados, passo - 1, tamanhoEntrada, casoTest);
+                executarPassosAte(estrutura, dados, passoAtual, tamanhoEntrada, casoTest);
 
                 long memoriaAntes = getProcessRssBytes();
                 long tempoAntes = System.nanoTime();
 
-                executarPasso(estrutura, dados, passo - 1, tamanhoEntrada, casoTest);
+                executarPasso(estrutura, dados, passoAtual, tamanhoEntrada, casoTest);
 
                 long tempoDepois = System.nanoTime();
                 long memoriaDepois = getProcessRssBytes();
@@ -79,7 +83,7 @@ public abstract class Bench {
 
             gravarDadosArquivoSaida(
                     resultFilePath,
-                    passo,
+                    indiceOperacao,
                     operacao,
                     calcularMediana(tempos),
                     calcularMediana(memorias)
@@ -128,19 +132,24 @@ public abstract class Bench {
                 break;
 
             case "50I50R0S":
-                if (passo < tamanhoEntrada / 2) {
-                    estrutura.add(dados.get(passo));
+                int metade = tamanhoEntrada / 2;
+                if (passo < metade) {
+                    int indiceInsercao = passo;
+                    estrutura.add(dados.get(indiceInsercao));
                 } else {
-                    estrutura.remove(dados.get(passo - (tamanhoEntrada / 2)));
+                    int indiceRemocao = passo - metade;
+                    estrutura.remove(dados.get(indiceRemocao));
                 }
                 break;
 
             case "75I25R0S":
                 int limiteInsercao75 = (int) (tamanhoEntrada * 0.75);
                 if (passo < limiteInsercao75) {
-                    estrutura.add(dados.get(passo));
+                    int indiceInsercao = passo;
+                    estrutura.add(dados.get(indiceInsercao));
                 } else {
-                    estrutura.remove(dados.get(passo - limiteInsercao75));
+                    int indiceRemocao = passo - limiteInsercao75;
+                    estrutura.remove(dados.get(indiceRemocao));
                 }
                 break;
 
@@ -149,11 +158,14 @@ public abstract class Bench {
                 int limiteBusca25 = (int) (tamanhoEntrada * 0.25);
 
                 if (passo < limiteInsercao50) {
-                    estrutura.add(dados.get(passo));
+                    int indiceInsercao = passo;
+                    estrutura.add(dados.get(indiceInsercao));
                 } else if (passo < limiteInsercao50 + limiteBusca25) {
-                    estrutura.search(dados.get(passo - limiteInsercao50));
+                    int indiceBusca = passo - limiteInsercao50;
+                    estrutura.search(dados.get(indiceBusca));
                 } else {
-                    estrutura.remove(dados.get(passo - limiteInsercao50 - limiteBusca25));
+                    int indiceRemocao = passo - limiteInsercao50 - limiteBusca25;
+                    estrutura.remove(dados.get(indiceRemocao));
                 }
                 break;
 
@@ -161,9 +173,11 @@ public abstract class Bench {
                 int limiteInsercao = (int) (tamanhoEntrada * 0.50);
 
                 if (passo < limiteInsercao) {
-                    estrutura.add(dados.get(passo));
+                    int indiceInsercao = passo;
+                    estrutura.add(dados.get(indiceInsercao));
                 } else {
-                    estrutura.search(dados.get(passo - limiteInsercao));
+                    int indiceBusca = passo - limiteInsercao;
+                    estrutura.search(dados.get(indiceBusca));
                 }
                 break;
 
@@ -191,12 +205,54 @@ public abstract class Bench {
                 int limiteInsercao50 = (int) (tamanhoEntrada * 0.50);
                 int limiteBusca25 = (int) (tamanhoEntrada * 0.25);
 
-                if (passo < limiteInsercao50) return 'I';
-                else if (passo < limiteInsercao50 + limiteBusca25) return 'S';
-                else return 'R';
+                if (passo < limiteInsercao50) {
+                    return 'I';
+                } else if (passo < limiteInsercao50 + limiteBusca25) {
+                    return 'S';
+                } else {
+                    return 'R';
+                }
 
             case "50I0R50S":
                 return passo < (int) (tamanhoEntrada * 0.50) ? 'I' : 'S';
+
+            default:
+                throw new IllegalArgumentException("Caso de teste inválido: " + casoTest);
+        }
+    }
+
+    /**
+     * Retorna o índice local da operação dentro da fase atual.
+     */
+    protected int descobrirIndiceOperacao(String casoTest, int passo, int tamanhoEntrada) {
+        switch (casoTest) {
+
+            case "100I0R0S":
+                return passo;
+
+            case "50I50R0S":
+                int metade = tamanhoEntrada / 2;
+                return passo < metade ? passo : passo - metade;
+
+            case "75I25R0S":
+                int limiteInsercao75 = (int) (tamanhoEntrada * 0.75);
+                return passo < limiteInsercao75 ? passo : passo - limiteInsercao75;
+
+            case "50I25R25S":
+                int limiteInsercao50 = (int) (tamanhoEntrada * 0.50);
+                int limiteBusca25 = (int) (tamanhoEntrada * 0.25);
+
+                if (passo < limiteInsercao50) {
+                    return passo;
+                } else if (passo < limiteInsercao50 + limiteBusca25) {
+                    return passo - limiteInsercao50;
+                } else {
+                    return passo - limiteInsercao50 - limiteBusca25;
+                }
+
+            case "50I0R50S":
+                int limiteInsercao = (int) (tamanhoEntrada * 0.50);
+                return passo < limiteInsercao ? passo : passo - limiteInsercao;
 
             default:
                 throw new IllegalArgumentException("Caso de teste inválido: " + casoTest);
@@ -245,7 +301,7 @@ public abstract class Bench {
         BufferedWriter writer = new BufferedWriter(new FileWriter(file, true));
 
         if (file.length() == 0) {
-            writer.write("TamanhoEntrada,Operacao,TempoExecucao(ns),MemoriaUso(bytes)\n");
+            writer.write("IndiceOperacao,Operacao,TempoExecucao(ns),MemoriaUso(bytes)\n");
         }
 
         return writer;
@@ -256,14 +312,14 @@ public abstract class Bench {
      */
     protected void gravarDadosArquivoSaida(
             String resultFilePath,
-            int tamanhoEntrada,
+            int indiceOperacao,
             char operacao,
             long tempoMediana,
             long memoriaMediana
     ) {
         try (BufferedWriter writer = inicializarArquivoDeSaida(resultFilePath)) {
             writer.write(
-                    tamanhoEntrada + "," +
+                    indiceOperacao + "," +
                     operacao + "," +
                     tempoMediana + "," +
                     memoriaMediana + "\n"
