@@ -3,18 +3,30 @@ package dev.ProjetoEDA;
 import dev.ProjetoEDA.controller.BenchController;
 
 /**
- * Classe principal responsável por selecionar e executar benchmarks.
- * A execução é realizada via argumentos passados pelo Maven.
+ * Classe principal responsável por disparar todos os benchmarks
+ * de uma estrutura a partir da linha de comando.
+ *
+ * <p>Uso:
+ * <pre>
+ * mvn exec:java "-Dexec.args=arraylist 100000"
+ * </pre>
+ * </p>
  */
 public class App {
 
+    /**
+     * Método principal da aplicação.
+     *
+     * @param args argumentos da linha de comando
+     */
     public static void main(String[] args) {
         if (args.length < 2) {
-            System.err.println("Uso: <benchmark> <tamanhoEntrada>");
+            System.err.println("Uso: <estrutura> <tamanhoEntrada>");
+            System.err.println("Exemplo: arraylist 100000");
             return;
         }
 
-        String benchmark = args[0].trim().toLowerCase();
+        String estrutura = args[0].trim().toLowerCase();
         int tamanhoEntrada;
 
         try {
@@ -24,19 +36,21 @@ public class App {
             return;
         }
 
-        executarBenchmark(benchmark, tamanhoEntrada);
+        executarBenchmark(estrutura, tamanhoEntrada);
     }
 
     /**
-     * Executa o benchmark selecionado para a estrutura especificada.
+     * Executa todos os benchmarks da estrutura escolhida.
      *
-     * @param benchmark Nome do benchmark a ser executado.
-     * @param tamanhoEntrada Tamanho da entrada a ser usado no experimento.
+     * @param estrutura nome da estrutura
+     * @param tamanhoEntrada tamanho máximo da entrada
      */
-    private static void executarBenchmark(String benchmark, int tamanhoEntrada) {
+    private static void executarBenchmark(String estrutura, int tamanhoEntrada) {
         try {
-            BenchController bController = new BenchController();
-            bController.escolherOCaso(benchmark, tamanhoEntrada);
+            BenchController controller = new BenchController();
+            controller.executar(estrutura, tamanhoEntrada);
+        } catch (IllegalArgumentException e) {
+            System.err.println(e.getMessage());
         } catch (Exception e) {
             e.printStackTrace();
         }
