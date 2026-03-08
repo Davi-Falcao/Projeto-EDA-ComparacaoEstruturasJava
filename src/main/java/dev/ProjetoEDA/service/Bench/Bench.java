@@ -193,7 +193,7 @@ public abstract class Bench {
     }
 
     protected String gerarPathArquivoSaida(String ordem, String casoTest) {
-        String nomeEstrutura = getNomeEstrutura();
+        String nomeEstrutura = getNomeEstrutura().toLowerCase();
 
         return "src/main/java/dev/ProjetoEDA/repository/results/"
                 + nomeEstrutura + "/result_"
