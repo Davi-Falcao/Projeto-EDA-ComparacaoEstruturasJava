@@ -32,7 +32,7 @@ mvn exec:java "-Dexec.java=<nome_do_benchmark> <tam_entrada>"
 ## 3) Arquivos de resultados são gerados automaticamente
 
 Os arquivos de resultados são salvos automaticamente em:
-/result/<Nome_estrutura>/
+repository/result/<Nome_estrutura>/
 
 ```padrão do resultado
 result_<Nome_da_Estrutura>_<ordem>_<Caso>.csv
