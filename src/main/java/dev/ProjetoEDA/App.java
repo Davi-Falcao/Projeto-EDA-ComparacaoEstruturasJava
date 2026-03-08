@@ -15,6 +15,7 @@ public class App {
         }
 
         String benchmark = args[0].trim().toLowerCase();
+        System.out.println(benchmark);
         executarBenchmark(benchmark);
     }
 
