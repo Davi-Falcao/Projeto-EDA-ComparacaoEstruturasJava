@@ -88,72 +88,140 @@ def extrair_titulo_base(csv_path):
     return None, None, None, None
 
 
-def plot_time_csv(csv_path, output_path=None):
+def aplicar_limite_y_condicional(series_dict, limite_y=None):
+    """
+    Aplica limite máximo no eixo Y apenas se todos os valores
+    do gráfico couberem dentro desse limite.
+    """
+    if limite_y is None or not series_dict:
+        return
+
+    valores = [
+        y
+        for pts in series_dict.values()
+        for _, y in pts
+    ]
+
+    if not valores:
+        return
+
+    ymax = max(valores)
+
+    if ymax <= limite_y:
+        plt.ylim(top=limite_y)
+
+
+def plot_series(series_dict, ylabel, title, output_path=None, limite_y=None):
+    plt.figure(figsize=(10, 6))
+
+    for operacao, pts in series_dict.items():
+        xs = [p[0] for p in pts]
+        ys = [p[1] for p in pts]
+        plt.plot(xs, ys, marker="o", label=nome_operacao(operacao))
+
+    plt.xlabel("Tamanho da entrada (N)")
+    plt.ylabel(ylabel)
+    plt.title(title)
+
+    if series_dict:
+        plt.legend()
+
+    plt.xscale("log")
+    aplicar_limite_y_condicional(series_dict, limite_y)
+    plt.grid(True, which="both", linestyle="--", alpha=0.4)
+    plt.tight_layout()
+
+    if output_path:
+        diretorio = os.path.dirname(output_path)
+        if diretorio:
+            garantir_diretorio(diretorio)
+        plt.savefig(output_path, dpi=200, bbox_inches="tight")
+        plt.close()
+    else:
+        plt.show()
+
+
+def plot_time_csv(csv_path, output_path=None, limite_y=None):
     tempo_series, _ = read_points(csv_path)
     estrutura, ordem, tipo, alvo = extrair_titulo_base(csv_path)
 
-    plt.figure(figsize=(10, 6))
-
-    for operacao, pts in tempo_series.items():
-        xs = [p[0] for p in pts]
-        ys = [p[1] for p in pts]
-        plt.plot(xs, ys, marker="o", label=nome_operacao(operacao))
-
-    plt.xlabel("Tamanho da entrada (N)")
-    plt.ylabel("Tempo médio por operação (ns)")
     if estrutura and ordem and tipo and alvo:
-        plt.title(f"Tempo - {estrutura.capitalize()} - {ordem} - {tipo} - {alvo}")
+        title = f"Tempo - {estrutura.capitalize()} - {ordem} - {tipo} - {alvo}"
     else:
-        plt.title("Tempo por operação vs Tamanho da entrada")
+        title = "Tempo por operação vs Tamanho da entrada"
 
-    if tempo_series:
-        plt.legend()
-
-    plt.xscale("log")
-    plt.grid(True, which="both", linestyle="--", alpha=0.4)
-    plt.tight_layout()
-
-    if output_path:
-        diretorio = os.path.dirname(output_path)
-        if diretorio:
-            garantir_diretorio(diretorio)
-        plt.savefig(output_path, dpi=200, bbox_inches="tight")
-        plt.close()
-    else:
-        plt.show()
+    plot_series(
+        tempo_series,
+        ylabel="Tempo médio por operação (ns)",
+        title=title,
+        output_path=output_path,
+        limite_y=limite_y
+    )
 
 
-def plot_mem_csv(csv_path, output_path=None):
+def plot_mem_csv(csv_path, output_path=None, limite_y=None):
     _, memoria_series = read_points(csv_path)
     estrutura, ordem, tipo, alvo = extrair_titulo_base(csv_path)
 
-    plt.figure(figsize=(10, 6))
-
-    for operacao, pts in memoria_series.items():
-        xs = [p[0] for p in pts]
-        ys = [p[1] for p in pts]
-        plt.plot(xs, ys, marker="o", label=nome_operacao(operacao))
-
-    plt.xlabel("Tamanho da entrada (N)")
-    plt.ylabel("Memória usada (bytes)")
-
     if estrutura and ordem and tipo and alvo:
-        plt.title(f"Memória - {estrutura.capitalize()} - {ordem} - {tipo} - {alvo}")
+        title = f"Memória - {estrutura.capitalize()} - {ordem} - {tipo} - {alvo}"
     else:
-        plt.title("Memória por operação vs Tamanho da entrada")
+        title = "Memória por operação vs Tamanho da entrada"
 
-    if memoria_series:
-        plt.legend()
+    plot_series(
+        memoria_series,
+        ylabel="Memória usada (bytes)",
+        title=title,
+        output_path=output_path,
+        limite_y=limite_y
+    )
 
-    plt.xscale("log")
-    plt.grid(True, which="both", linestyle="--", alpha=0.4)
-    plt.tight_layout()
 
-    if output_path:
-        diretorio = os.path.dirname(output_path)
-        if diretorio:
-            garantir_diretorio(diretorio)
-        plt.savefig(output_path, dpi=200, bbox_inches="tight")
-        plt.close()
+def juntar_series_csvs(csv_paths, tipo="tempo"):
+    """
+    Junta várias séries de CSVs em uma única estrutura agregada.
+    Ideal para agrupar add/search/remove da mesma ordem.
+    """
+    series_final = defaultdict(list)
+
+    for csv_path in csv_paths:
+        tempo_series, memoria_series = read_points(csv_path)
+        origem = tempo_series if tipo == "tempo" else memoria_series
+
+        for operacao, pts in origem.items():
+            series_final[operacao].extend(pts)
+
+    for operacao in series_final:
+        series_final[operacao].sort(key=lambda x: x[0])
+
+    return series_final
+
+
+def plot_referencia_agrupada(
+    csv_paths,
+    estrutura,
+    ordem,
+    output_path=None,
+    tipo="tempo",
+    limite_y=None
+):
+    """
+    Gera um gráfico único com todas as operações de referência
+    da mesma ordem: add, search e remove.
+    """
+    series = juntar_series_csvs(csv_paths, tipo=tipo)
+
+    if tipo == "tempo":
+        ylabel = "Tempo médio por operação (ns)"
+        title = f"Tempo - {estrutura.capitalize()} - Referência - {ordem}"
     else:
-        plt.show()
+        ylabel = "Memória usada (bytes)"
+        title = f"Memória - {estrutura.capitalize()} - Referência - {ordem}"
+
+    plot_series(
+        series,
+        ylabel=ylabel,
+        title=title,
+        output_path=output_path,
+        limite_y=limite_y
+    )

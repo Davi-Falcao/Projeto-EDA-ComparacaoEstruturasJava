@@ -1,6 +1,10 @@
 import os
 import argparse
-from plot_utils import *
+from plot_utils import (
+    plot_time_csv,
+    plot_mem_csv,
+    plot_referencia_agrupada,
+)
 
 INPUT_DIR = "src/main/java/dev/ProjetoEDA/repository/results"
 OUTPUT_DIR = "src/main/java/dev/ProjetoEDA/repository/graphs"
@@ -25,33 +29,6 @@ def extrair_info_nome_arquivo(csv_path):
         alvo = "_".join(partes[3:])
 
     return estrutura, ordem, tipo, alvo
-
-
-def eh_csv_referencia(csv_path):
-    _, _, tipo, _ = extrair_info_nome_arquivo(csv_path)
-    return tipo == "operacao"
-
-
-def gerar_graficos(csv_path):
-    estrutura, ordem, tipo, alvo = extrair_info_nome_arquivo(csv_path)
-
-    pasta_saida = os.path.join(OUTPUT_DIR, estrutura.lower())
-    os.makedirs(pasta_saida, exist_ok=True)
-
-    tempo_output = os.path.join(
-        pasta_saida,
-        f"{estrutura.lower()}_{ordem}_{tipo}_{alvo}_tempo.png"
-    )
-
-    memoria_output = os.path.join(
-        pasta_saida,
-        f"{estrutura.lower()}_{ordem}_{tipo}_{alvo}_memoria.png"
-    )
-
-    plot_time_csv(csv_path, tempo_output, limite_y=10000)
-    plot_mem_csv(csv_path, memoria_output)
-
-    print(f"[OK] {os.path.basename(csv_path)}")
 
 
 def listar_csvs(nome_estrutura=None):
@@ -83,6 +60,31 @@ def listar_csvs(nome_estrutura=None):
     return sorted(arquivos)
 
 
+def gerar_grafico_workload(csv_path):
+    estrutura, ordem, tipo, alvo = extrair_info_nome_arquivo(csv_path)
+
+    if tipo != "workload":
+        return
+
+    pasta_saida = os.path.join(OUTPUT_DIR, estrutura.lower())
+    os.makedirs(pasta_saida, exist_ok=True)
+
+    tempo_output = os.path.join(
+        pasta_saida,
+        f"{estrutura.lower()}_{ordem}_{tipo}_{alvo}_tempo.png"
+    )
+
+    memoria_output = os.path.join(
+        pasta_saida,
+        f"{estrutura.lower()}_{ordem}_{tipo}_{alvo}_memoria.png"
+    )
+
+    plot_time_csv(csv_path, tempo_output, limite_y=10000)
+    plot_mem_csv(csv_path, memoria_output)
+
+    print(f"[OK] workload {os.path.basename(csv_path)}")
+
+
 def agrupar_referencias_por_ordem(csvs):
     grupos = {
         "random": [],
@@ -107,6 +109,7 @@ def gerar_graficos_referencia_agrupados(nome_estrutura):
     estrutura, grupos = agrupar_referencias_por_ordem(csvs)
 
     if not estrutura:
+        print("Nenhum CSV de referência encontrado.")
         return
 
     pasta_saida = os.path.join(OUTPUT_DIR, estrutura.lower())
@@ -157,9 +160,12 @@ def gerar_todos():
 
     for caminho in encontrados:
         try:
-            gerar_graficos(caminho)
-            estrutura, _, _, _ = extrair_info_nome_arquivo(caminho)
+            estrutura, _, tipo, _ = extrair_info_nome_arquivo(caminho)
             estruturas.add(estrutura.lower())
+
+            if tipo == "workload":
+                gerar_grafico_workload(caminho)
+
         except Exception as e:
             print(f"[ERRO] {os.path.basename(caminho)} -> {e}")
 
@@ -183,7 +189,11 @@ def gerar_por_estrutura(nome_estrutura):
 
     for caminho in encontrados:
         try:
-            gerar_graficos(caminho)
+            _, _, tipo, _ = extrair_info_nome_arquivo(caminho)
+
+            if tipo == "workload":
+                gerar_grafico_workload(caminho)
+
         except Exception as e:
             print(f"[ERRO] {os.path.basename(caminho)} -> {e}")
 
@@ -195,7 +205,7 @@ def gerar_por_estrutura(nome_estrutura):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Gerador de gráficos para benchmarks automáticos por operação e workload"
+        description="Gerador de gráficos: referência agrupada + workload individual"
     )
 
     parser.add_argument(
