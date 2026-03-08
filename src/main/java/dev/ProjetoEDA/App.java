@@ -8,28 +8,37 @@ import dev.ProjetoEDA.controller.BenchController;
  */
 public class App {
 
-    public static void main(String[] args) throws Exception {
-        if (args.length == 0) {
-            System.err.println("Nenhum benchmark especificado.");
+    public static void main(String[] args) {
+        if (args.length < 2) {
+            System.err.println("Uso: <benchmark> <tamanhoEntrada>");
             return;
         }
 
         String benchmark = args[0].trim().toLowerCase();
-        System.out.println(benchmark);
-        executarBenchmark(benchmark);
+        int tamanhoEntrada;
+
+        try {
+            tamanhoEntrada = Integer.parseInt(args[1].trim());
+        } catch (NumberFormatException e) {
+            System.err.println("O tamanho da entrada deve ser um número inteiro válido.");
+            return;
+        }
+
+        executarBenchmark(benchmark, tamanhoEntrada);
     }
 
     /**
      * Executa o benchmark selecionado para a estrutura especificada.
      *
      * @param benchmark Nome do benchmark a ser executado.
-     * @throws Exception Caso ocorra erro durante a execução do benchmark ou no processamento dos arquivos temporários.
+     * @param tamanhoEntrada Tamanho da entrada a ser usado no experimento.
      */
-    private static void executarBenchmark(String benchmark) {
+    private static void executarBenchmark(String benchmark, int tamanhoEntrada) {
         try {
             BenchController bController = new BenchController();
-            bController.escolherOCaso(benchmark);    
-        
-        } catch (Exception e) {}
+            bController.escolherOCaso(benchmark, tamanhoEntrada);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
