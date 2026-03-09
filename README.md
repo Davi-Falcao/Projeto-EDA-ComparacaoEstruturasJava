@@ -27,7 +27,7 @@ mvn clean compile
 Executar o App:
 
 ```Powershell
-mvn exec:java "-Dexec.java=<nome_do_benchmark> <tam_entrada>"
+mvn exec:java "-Dexec.args=<nome_do_benchmark> <tam_entrada>"
 ```
 ## 3) Arquivos de resultados são gerados automaticamente
 
