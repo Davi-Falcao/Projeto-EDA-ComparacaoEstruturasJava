@@ -1,9 +1,6 @@
 package dev.ProjetoEDA.service;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -613,8 +610,22 @@ protected void executarWarmupOperacao(List<Integer> dados, int n, Operacao opera
     }
 
     protected long getHeapUsedBytes() {
-        Runtime runtime = Runtime.getRuntime();
-        return runtime.totalMemory() - runtime.freeMemory();
+        return getProcessRssBytes();
+    }
+
+    // RSS (Resident Set Size) do processo Java em bytes (Linux)
+    protected static long getProcessRssBytes() {
+        try (BufferedReader br = new BufferedReader(new FileReader("/proc/self/status"))) {
+            String s;
+            while ((s = br.readLine()) != null) {
+                if (s.startsWith("VmRSS:")) {
+                    String[] parts = s.trim().split("\\s+");
+                    long kb = Long.parseLong(parts[1]); // vem em kB
+                    return kb * 1024L; // converte pra bytes
+                }
+            }
+        } catch (IOException ignored) {}
+        return -1L;
     }
 
     protected abstract String getNomeEstrutura();
