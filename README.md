@@ -69,18 +69,6 @@ Cada uma dessas estruturas possui características próprias de organização in
 
 ---
 
-# Introdução
-
-A escolha de estruturas de dados adequadas é um dos fatores mais importantes no desenvolvimento de sistemas eficientes. Estruturas diferentes podem oferecer operações semelhantes — como inserção, remoção e busca — porém apresentar comportamentos significativamente distintos quando analisadas em termos de desempenho e consumo de recursos.
-
-Com o crescimento constante do volume de dados manipulados por aplicações modernas, torna-se cada vez mais relevante compreender como diferentes estruturas se comportam em cenários reais de execução. Pequenas diferenças na forma como os dados são organizados em memória podem resultar em impactos consideráveis no tempo necessário para realizar operações fundamentais.
-
-Neste contexto, este estudo propõe a implementação e análise comparativa de diferentes estruturas de dados amplamente utilizadas na prática computacional. O objetivo é observar como cada estrutura responde a diferentes padrões de uso, avaliando principalmente o custo das operações básicas e o consumo de memória associado.
-
-Para tornar essa análise mais clara, as estruturas foram organizadas em três grupos principais: estruturas lineares, estruturas baseadas em árvores de busca e estruturas baseadas em heap.
-
----
-
 # Estruturas de Dados Avaliadas
 
 ## Estruturas baseadas em listas
