@@ -1,0 +1,11 @@
+TamanhoEntrada,Operacao,TempoMedio(ns),MemoriaUso(bytes)
+100,ADD,50,0
+167,ADD,54,0
+278,ADD,71,0
+464,ADD,79,0
+774,ADD,78,0
+1292,ADD,82,0
+2154,ADD,88,0
+3594,ADD,95,0
+5995,ADD,101,0
+10000,ADD,120,0

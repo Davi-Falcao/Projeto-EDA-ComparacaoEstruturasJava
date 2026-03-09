@@ -6,9 +6,18 @@ from plot_utils import (
     plot_referencia_agrupada,
 )
 
-INPUT_DIR = "src/main/java/dev/ProjetoEDA/repository/results"
-OUTPUT_DIR = "src/main/java/dev/ProjetoEDA/repository/graphs"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.abspath(os.path.join(BASE_DIR, "../.."))
 
+INPUT_DIR = os.path.join(
+    PROJECT_ROOT,
+    "src", "main", "java", "dev", "ProjetoEDA", "repository", "results"
+)
+
+OUTPUT_DIR = os.path.join(
+    PROJECT_ROOT,
+    "src", "main", "java", "dev", "ProjetoEDA", "repository", "graphs"
+)
 
 def extrair_info_nome_arquivo(csv_path):
     nome_arquivo = os.path.basename(csv_path)
