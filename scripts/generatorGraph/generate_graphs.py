@@ -79,8 +79,19 @@ def gerar_grafico_workload(csv_path):
         f"{estrutura.lower()}_{ordem}_{tipo}_{alvo}_memoria.png"
     )
 
-    plot_time_csv(csv_path, tempo_output, limite_y=10000)
-    plot_mem_csv(csv_path, memoria_output)
+    plot_time_csv(
+        csv_path,
+        output_path=tempo_output,
+        limite_y=None,
+        x_log=False
+    )
+
+    plot_mem_csv(
+        csv_path,
+        output_path=memoria_output,
+        limite_y=None,
+        x_log=False
+    )
 
     print(f"[OK] workload {os.path.basename(csv_path)}")
 
@@ -135,7 +146,8 @@ def gerar_graficos_referencia_agrupados(nome_estrutura):
             ordem=ordem,
             output_path=tempo_output,
             tipo="tempo",
-            limite_y=10000
+            limite_y=None,
+            x_log=False
         )
 
         plot_referencia_agrupada(
@@ -143,7 +155,9 @@ def gerar_graficos_referencia_agrupados(nome_estrutura):
             estrutura=estrutura,
             ordem=ordem,
             output_path=memoria_output,
-            tipo="memoria"
+            tipo="memoria",
+            limite_y=None,
+            x_log=False
         )
 
         print(f"[OK] referência agrupada {estrutura} {ordem}")
