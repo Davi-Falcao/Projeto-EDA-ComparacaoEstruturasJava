@@ -2,6 +2,7 @@
 
 Projeto para benchmark de operações em estruturas de dados, medindo por operação:
 - `TempoExecucao(ns)`
+- `MemoriaUso(bytes)`
 
 As operações de entrada são:
 - `I`: inserção
@@ -43,7 +44,7 @@ result_<Nome_da_Estrutura>_<ordem>_<Caso>.csv
 
 Executar a plotagem:
 ```bash
-python ./scripts/generatorGraphs/generate_graphs.py <nome_estrutura>
+python ./scripts/generatorGraph/generate_graphs.py <nome_estrutura>
 ```
 Os gráficos são salvos automaticamente em:
 ```bash
@@ -88,9 +89,10 @@ Além disso, os experimentos foram executados utilizando diferentes padrões de 
 
 Cada arquivo de dados utilizado nesse experimento possue 10⁶ elementos com valores positivos que podem chegar até 10⁸, sendo esses arquivos gerados por um script em **bash**.
 
-Durante cada execução foi coletada a seguinte métrica:
+Durante cada execução foram coletadas duas métricas principais:
 
 - **Tempo de execução**, medido em **nanosegundos**
+- **Consumo de memória**, medido em **bytes**
 
 Os resultados obtidos foram armazenados em arquivos no formato **CSV**, permitindo posteriormente a geração de **gráficos comparativos** que mostram o comportamento das estruturas analisadas em diferentes cenários de execução.
 
