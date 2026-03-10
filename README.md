@@ -1,22 +1,21 @@
-# Projeto EDA - Comparacao de Estruturas em Java
+# Projeto EDA - Comparação de Estruturas em Java
 
-Projeto para benchmark de operacoes em estruturas de dados, medindo por operacao:
+Projeto para benchmark de operações em estruturas de dados, medindo por operação:
 - `TempoExecucao(ns)`
-- `MemoriaUso(bytes)`
 
-As operacoes de entrada sao:
-- `I`: insercao
-- `R`: remocao
+As operações de entrada são:
+- `I`: inserção
+- `R`: remoção
 - `S`: busca
 
-## 1) Pre-requisitos
+## 1) Pré-requisitos
 
 - Java (JDK) 8+
 - Maven no `PATH`
 - Para gerar dados com script `.sh`: Git Bash, WSL ou Linux/macOS
-- Para graficos: Python 3 com `matplotlib`
+- Para gráficos: Python 3 com `matplotlib`
 
-## 2) Compilacao e execucao com Maven
+## 2) Compilação e execução com Maven
 
 Compilar o projeto:
 
@@ -40,20 +39,20 @@ padrão do resultado
 result_<Nome_da_Estrutura>_<ordem>_<Caso>.csv
 ```
 
-## 4) Gerar plotagem de gráficos automatica
+## 4) Gerar plotagem de gráficos automática
 
-Executar o a plotagem:
+Executar a plotagem:
 ```bash
 python ./scripts/generatorGraphs/generate_graphs.py <nome_estrutura>
 ```
-Os graficos são salvos automaticamente em:
+Os gráficos são salvos automaticamente em:
 ```bash
 repository/result/graphs/<Nome_estrutura>
 ```
 
-# Análise de Estruturas de Dados – Tempo de Execução e Consumo de Memória
+# Análise de Estruturas de Dados
 
-Este repositório contém a experimentação realizada sobre a comparação de diferentes estruturas de dados que apresentam operações semelhantes, com o objetivo de analisar o impacto de cada implementação em termos de **tempo de execução** e **consumo de memória**.
+Este repositório contém a experimentação realizada sobre a comparação de diferentes estruturas de dados que apresentam operações semelhantes, com o objetivo de analisar o impacto de cada implementação em termos de eficiência.
 
 As estruturas avaliadas no experimento são:
 
@@ -83,14 +82,15 @@ Os cenários utilizados foram:
 
 Além disso, os experimentos foram executados utilizando diferentes padrões de distribuição de dados de entrada:
 
-- **Random** — valores gerados aleatoriamente
-- **Crescente** — valores ordenados em ordem crescente
-- **Decrescente** — valores ordenados em ordem decrescente
+- **Random** — valores gerados aleatoriamente sem repetição
+- **Crescente** — valores ordenados de forma estritamente crescente
+- **Decrescente** — valores ordenados de forma estritamente decrescente
 
-Durante cada execução foram coletadas duas métricas principais:
+Cada arquivo de dados utilizado nesse experimento possue 10⁶ elementos com valores positivos que podem chegar até 10⁸, sendo esses arquivos gerados por um script em **bash**.
+
+Durante cada execução foi coletada a seguinte métrica:
 
 - **Tempo de execução**, medido em **nanosegundos**
-- **Consumo de memória**, medido em **bytes**
 
 Os resultados obtidos foram armazenados em arquivos no formato **CSV**, permitindo posteriormente a geração de **gráficos comparativos** que mostram o comportamento das estruturas analisadas em diferentes cenários de execução.
 
