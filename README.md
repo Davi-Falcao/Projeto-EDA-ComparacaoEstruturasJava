@@ -109,24 +109,13 @@ Essa organização permite que diferentes estruturas sejam testadas utilizando e
 
 ---
 
-## Interface Estrutura
+## Arquitetura do Benchmark
 
-Todas as estruturas avaliadas no experimento implementam a interface `Estrutura`.
+O benchmark foi estruturado de forma a separar a lógica de medição da implementação das estruturas de dados.
 
-```java
-public interface Estrutura {
-    boolean add(int element);
-    boolean remove(int element);
-    boolean search(int element);
-}
-```
----
+Todas as estruturas implementam uma interface comum (`Estrutura`), que define as operações básicas utilizadas nos experimentos: inserção, remoção e busca. Dessa forma, diferentes estruturas podem ser testadas utilizando exatamente o mesmo protocolo de benchmark.
 
-## Controle de execução do benchmark
-
-A seleção da estrutura que será analisada é realizada pela classe **BenchController**, responsável por intermediar a comunicação entre a aplicação e as implementações concretas de benchmark.
-
-Essa classe recebe o nome da estrutura informado na execução do programa e identifica qual implementação de benchmark deve ser utilizada.
+A execução dos experimentos é coordenada pela classe **BenchController**, responsável por intermediar a comunicação entre a aplicação e as implementações concretas de benchmark.
 
 Cada estrutura possui uma classe específica de benchmark, como:
 
@@ -138,14 +127,14 @@ Cada estrutura possui uma classe específica de benchmark, como:
 - `BenchHeap`
 - `BenchPriorityQueue`
 
-O fluxo de execução do experimento ocorre da seguinte forma:
+O fluxo de execução ocorre da seguinte forma:
 
-1. A classe **App** recebe os parâmetros da linha de comando.
+1. A classe **App** recebe os parâmetros informados na linha de comando.
 2. O **BenchController** identifica qual benchmark deve ser executado.
-3. A implementação concreta de **Bench** é instanciada.
+3. A implementação concreta de **Bench** correspondente à estrutura é instanciada.
 4. O tamanho máximo da entrada é configurado.
 5. O método `run()` inicia a execução dos experimentos.
 
-Essa organização centraliza a lógica de seleção das estruturas em um único ponto do sistema, permitindo que novas estruturas sejam adicionadas ao benchmark sem alterar a lógica principal da aplicação.
+Essa organização centraliza a seleção das estruturas em um único ponto do sistema, facilitando a manutenção do código e permitindo a inclusão de novas estruturas sem modificar a lógica principal da aplicação.
 
 ---
