@@ -81,16 +81,17 @@ def aplicar_limite_y_condicional(series_dict, limite_y=None, margem=0.10):
     if not valores:
         return
 
+    bottom = 30  # limite mínimo em nanossegundos
+
     ymax = max(valores)
 
     if limite_y is not None:
-        if ymax <= limite_y:
-            plt.ylim(0, limite_y)
+        plt.ylim(bottom, limite_y)
     else:
         topo = ymax * (1 + margem)
-        if topo == 0:
-            topo = 1
-        plt.ylim(0, topo)
+        if topo <= bottom:
+            topo = bottom + 1
+        plt.ylim(bottom, topo)
 
 
 def plot_series(series_dict, ylabel, title, output_path=None, limite_y=None, x_log=False):
