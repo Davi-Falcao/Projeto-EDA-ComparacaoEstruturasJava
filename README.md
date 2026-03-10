@@ -98,19 +98,6 @@ Os resultados obtidos foram armazenados em arquivos no formato **CSV**, permitin
 
 ## Estrutura do Benchmark
 
-O benchmark foi projetado utilizando um modelo de abstração que separa a lógica de medição da implementação das estruturas de dados.
-
-Para isso, o projeto utiliza dois elementos principais:
-
-- uma **classe abstrata de benchmark (`Bench`)**
-- uma **interface comum para as estruturas (`Estrutura`)**
-
-Essa organização permite que diferentes estruturas sejam testadas utilizando exatamente o mesmo protocolo experimental.
-
----
-
-## Arquitetura do Benchmark
-
 O benchmark foi estruturado de forma a separar a lógica de medição da implementação das estruturas de dados.
 
 Todas as estruturas implementam uma interface comum (`Estrutura`), que define as operações básicas utilizadas nos experimentos: inserção, remoção e busca. Dessa forma, diferentes estruturas podem ser testadas utilizando exatamente o mesmo protocolo de benchmark.
