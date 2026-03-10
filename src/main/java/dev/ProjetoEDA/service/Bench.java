@@ -26,6 +26,12 @@ import dev.ProjetoEDA.model.Estrutura;
  *     </ul>
  *   </li>
  * </ul>
+ *
+ * <p>A coluna de memória do CSV mantém o mesmo formato do projeto, mas
+ * representa a memória ocupada pela estrutura após a construção do estado
+ * correspondente ao experimento. Para evitar que a JVM elimine a estrutura
+ * antes da leitura da heap, uma referência temporária é preservada durante
+ * a medição.</p>
  */
 public abstract class Bench {
 
@@ -80,6 +86,12 @@ public abstract class Bench {
     protected static int entrada;
 
     private static boolean dadosCarregados = false;
+
+    /**
+     * Referência auxiliar para manter objetos vivos durante a medição
+     * de memória e evitar otimizações do JIT/GC antes da leitura final.
+     */
+    private static volatile Object memoriaSink;
 
     /**
      * Warmup da JVM.
@@ -142,11 +154,11 @@ public abstract class Bench {
         }
     }
 
-protected void executarWarmupOperacao(List<Integer> dados, int n, Operacao operacao) {
-    for (int i = 0; i < RODADAS_WARMUP; i++) {
-        medirOperacao(dados, n, operacao, i);
+    protected void executarWarmupOperacao(List<Integer> dados, int n, Operacao operacao) {
+        for (int i = 0; i < RODADAS_WARMUP; i++) {
+            medirOperacao(dados, n, operacao, i);
+        }
     }
-}
 
     /**
      * Benchmark de referência por operação.
@@ -165,7 +177,7 @@ protected void executarWarmupOperacao(List<Integer> dados, int n, Operacao opera
                 for (int rodada = 0; rodada < RODADAS_MEDICAO; rodada++) {
                     ResultadoOperacao resultado = medirOperacao(dados, n, operacao, rodada);
                     tempos[rodada] = resultado.tempoMedio;
-                    memorias[rodada] = resultado.memoriaMedia;
+                    memorias[rodada] = medirMemoriaEstrutura(dados, n);
                 }
 
                 gravarLinhaResultado(
@@ -199,65 +211,53 @@ protected void executarWarmupOperacao(List<Integer> dados, int n, Operacao opera
      * Mede ADD em bloco.
      */
     protected ResultadoOperacao medirAdd(List<Integer> dados, int n, int rodada) {
-    long tempoTotal = 0L;
-    long memoriaTotal = 0L;
+        long tempoTotal = 0L;
 
-    for (int r = 0; r < REPETICOES_POR_AMOSTRA; r++) {
-        Estrutura estrutura = criarEstrutura();
+        for (int r = 0; r < REPETICOES_POR_AMOSTRA; r++) {
+            Estrutura estrutura = criarEstrutura();
 
-        for (int i = 0; i < n; i++) {
-            estrutura.add(dados.get(i));
+            for (int i = 0; i < n; i++) {
+                estrutura.add(dados.get(i));
+            }
+
+            int valorNovo = dados.get(n + r + rodada);
+
+            long inicio = System.nanoTime();
+            estrutura.add(valorNovo);
+            long fim = System.nanoTime();
+
+            tempoTotal += (fim - inicio);
         }
 
-        int valorNovo = dados.get(n + r + rodada);
-
-        long memoriaAntes = getHeapUsedBytes();
-        long inicio = System.nanoTime();
-        estrutura.add(valorNovo);
-        long fim = System.nanoTime();
-        long memoriaDepois = getHeapUsedBytes();
-
-        tempoTotal += (fim - inicio);
-        memoriaTotal += Math.max(0, memoriaDepois - memoriaAntes);
+        long tempoMedio = tempoTotal / REPETICOES_POR_AMOSTRA;
+        return new ResultadoOperacao(tempoMedio, 0);
     }
-
-    long tempoMedio = tempoTotal / REPETICOES_POR_AMOSTRA;
-    long memoriaMedia = memoriaTotal / REPETICOES_POR_AMOSTRA;
-
-    return new ResultadoOperacao(tempoMedio, memoriaMedia);
-}
 
     /**
      * Mede SEARCH em uma estrutura previamente populada com n elementos.
      */
     protected ResultadoOperacao medirSearch(List<Integer> dados, int n, int rodada) {
-    long tempoTotal = 0L;
-    long memoriaTotal = 0L;
+        long tempoTotal = 0L;
 
-    for (int r = 0; r < REPETICOES_POR_AMOSTRA; r++) {
-        Estrutura estrutura = criarEstrutura();
+        for (int r = 0; r < REPETICOES_POR_AMOSTRA; r++) {
+            Estrutura estrutura = criarEstrutura();
 
-        for (int i = 0; i < n; i++) {
-            estrutura.add(dados.get(i));
+            for (int i = 0; i < n; i++) {
+                estrutura.add(dados.get(i));
+            }
+
+            int valorBusca = dados.get(n - 1);
+
+            long inicio = System.nanoTime();
+            estrutura.search(valorBusca);
+            long fim = System.nanoTime();
+
+            tempoTotal += (fim - inicio);
         }
 
-        int valorBusca = dados.get(n - 1);
-
-        long memoriaAntes = getHeapUsedBytes();
-        long inicio = System.nanoTime();
-        estrutura.search(valorBusca);
-        long fim = System.nanoTime();
-        long memoriaDepois = getHeapUsedBytes();
-
-        tempoTotal += (fim - inicio);
-        memoriaTotal += Math.max(0, memoriaDepois - memoriaAntes);
+        long tempoMedio = tempoTotal / REPETICOES_POR_AMOSTRA;
+        return new ResultadoOperacao(tempoMedio, 0);
     }
-
-    long tempoMedio = tempoTotal / REPETICOES_POR_AMOSTRA;
-    long memoriaMedia = memoriaTotal / REPETICOES_POR_AMOSTRA;
-
-    return new ResultadoOperacao(tempoMedio, memoriaMedia);
-}
 
     /**
      * Mede REMOVE de forma unitária.
@@ -267,33 +267,27 @@ protected void executarWarmupOperacao(List<Integer> dados, int n, Operacao opera
      * e não o custo acumulado de uma sequência de remoções.</p>
      */
     protected ResultadoOperacao medirRemove(List<Integer> dados, int n, int rodada) {
-    long tempoTotal = 0L;
-    long memoriaTotal = 0L;
+        long tempoTotal = 0L;
 
-    for (int r = 0; r < REPETICOES_REMOVE; r++) {
-        Estrutura estrutura = criarEstrutura();
+        for (int r = 0; r < REPETICOES_REMOVE; r++) {
+            Estrutura estrutura = criarEstrutura();
 
-        for (int i = 0; i < n; i++) {
-            estrutura.add(dados.get(i));
+            for (int i = 0; i < n; i++) {
+                estrutura.add(dados.get(i));
+            }
+
+            int valor = dados.get(n - 1);
+
+            long inicio = System.nanoTime();
+            estrutura.remove(valor);
+            long fim = System.nanoTime();
+
+            tempoTotal += (fim - inicio);
         }
 
-        int valor = dados.get(n - 1);
-
-        long memoriaAntes = getHeapUsedBytes();
-        long inicio = System.nanoTime();
-        estrutura.remove(valor);
-        long fim = System.nanoTime();
-        long memoriaDepois = getHeapUsedBytes();
-
-        tempoTotal += (fim - inicio);
-        memoriaTotal += Math.max(0, memoriaDepois - memoriaAntes);
+        long tempoMedio = tempoTotal / REPETICOES_REMOVE;
+        return new ResultadoOperacao(tempoMedio, 0);
     }
-
-    long tempoMedio = tempoTotal / REPETICOES_REMOVE;
-    long memoriaMedia = memoriaTotal / REPETICOES_REMOVE;
-
-    return new ResultadoOperacao(tempoMedio, memoriaMedia);
-}
 
     /**
      * Workload misto.
@@ -312,6 +306,7 @@ protected void executarWarmupOperacao(List<Integer> dados, int n, Operacao opera
                 long[] temposAdd = new long[RODADAS_MEDICAO];
                 long[] temposSearch = new long[RODADAS_MEDICAO];
                 long[] temposRemove = new long[RODADAS_MEDICAO];
+                long[] memorias = new long[RODADAS_MEDICAO];
 
                 boolean temAdd = false;
                 boolean temSearch = false;
@@ -334,18 +329,40 @@ protected void executarWarmupOperacao(List<Integer> dados, int n, Operacao opera
                         temposRemove[rodada] = resultado.tempoRemove / resultado.qtdRemove;
                         temRemove = true;
                     }
+
+                    memorias[rodada] = medirMemoriaWorkload(dados, n, caso, ordem, rodada);
                 }
 
+                long memoriaMediana = calcularMediana(memorias);
+
                 if (temAdd) {
-                    gravarLinhaResultado(writer, n, Operacao.ADD.name(), calcularMediana(temposAdd), 0);
+                    gravarLinhaResultado(
+                            writer,
+                            n,
+                            Operacao.ADD.name(),
+                            calcularMediana(temposAdd),
+                            memoriaMediana
+                    );
                 }
 
                 if (temSearch) {
-                    gravarLinhaResultado(writer, n, Operacao.SEARCH.name(), calcularMediana(temposSearch), 0);
+                    gravarLinhaResultado(
+                            writer,
+                            n,
+                            Operacao.SEARCH.name(),
+                            calcularMediana(temposSearch),
+                            memoriaMediana
+                    );
                 }
 
                 if (temRemove) {
-                    gravarLinhaResultado(writer, n, Operacao.REMOVE.name(), calcularMediana(temposRemove), 0);
+                    gravarLinhaResultado(
+                            writer,
+                            n,
+                            Operacao.REMOVE.name(),
+                            calcularMediana(temposRemove),
+                            memoriaMediana
+                    );
                 }
             }
         }
@@ -609,23 +626,119 @@ protected void executarWarmupOperacao(List<Integer> dados, int n, Operacao opera
         }
     }
 
+    /**
+     * Retorna a quantidade de heap usada pela JVM em bytes.
+     */
     protected long getHeapUsedBytes() {
-        return getProcessRssBytes();
+        Runtime rt = Runtime.getRuntime();
+        return rt.totalMemory() - rt.freeMemory();
     }
 
-    // RSS (Resident Set Size) do processo Java em bytes (Linux)
-    protected static long getProcessRssBytes() {
-        try (BufferedReader br = new BufferedReader(new FileReader("/proc/self/status"))) {
-            String s;
-            while ((s = br.readLine()) != null) {
-                if (s.startsWith("VmRSS:")) {
-                    String[] parts = s.trim().split("\\s+");
-                    long kb = Long.parseLong(parts[1]); // vem em kB
-                    return kb * 1024L; // converte pra bytes
-                }
+    /**
+     * Faz uma pausa curta para reduzir ruído após solicitação de GC.
+     */
+    protected void pausar(long millis) {
+        try {
+            Thread.sleep(millis);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+    }
+
+    /**
+     * Mede a memória ocupada pela estrutura com n elementos.
+     *
+     * <p>O GC é solicitado antes da construção para reduzir ruído da heap já
+     * existente. Após montar a estrutura, a leitura é feita imediatamente,
+     * mantendo referência viva ao objeto medido.</p>
+     */
+    protected long medirMemoriaEstrutura(List<Integer> dados, int n) {
+        System.gc();
+        pausar(50);
+
+        long antes = getHeapUsedBytes();
+
+        Estrutura estrutura = criarEstrutura();
+        for (int i = 0; i < n; i++) {
+            estrutura.add(dados.get(i));
+        }
+
+        memoriaSink = estrutura;
+        long depois = getHeapUsedBytes();
+        long memoria = Math.max(0, depois - antes);
+        memoriaSink = null;
+
+        return memoria;
+    }
+
+    /**
+     * Mede a memória do estado final de um workload.
+     *
+     * <p>A medição replica a mesma lógica do workload, mas captura a heap
+     * utilizada pela estrutura ao final da sequência de operações.</p>
+     */
+    protected long medirMemoriaWorkload(
+            List<Integer> dados,
+            int n,
+            CasoMisto caso,
+            String ordem,
+            int rodada
+    ) {
+        System.gc();
+        pausar(50);
+
+        long antes = getHeapUsedBytes();
+
+        Estrutura estrutura = criarEstrutura();
+        java.util.ArrayList<Integer> ativos = new java.util.ArrayList<>();
+
+        int addExecutados = 0;
+
+        Random randomizador = new Random(
+                31L * n
+                        + 17L * rodada
+                        + 13L * Math.abs(ordem.hashCode())
+                        + 97L * caso.ordinal()
+        );
+
+        for (int passo = 0; passo < n; passo++) {
+            Operacao operacao = descobrirOperacaoWorkload(caso, passo, n);
+
+            switch (operacao) {
+                case ADD:
+                    int valorInsercao = dados.get(addExecutados);
+                    estrutura.add(valorInsercao);
+                    ativos.add(valorInsercao);
+                    addExecutados++;
+                    break;
+
+                case SEARCH:
+                    if (!ativos.isEmpty()) {
+                        int indiceBusca = randomizador.nextInt(ativos.size());
+                        int valorBusca = ativos.get(indiceBusca);
+                        estrutura.search(valorBusca);
+                    }
+                    break;
+
+                case REMOVE:
+                    if (!ativos.isEmpty()) {
+                        int indiceRemocao = randomizador.nextInt(ativos.size());
+                        int valorRemocao = ativos.remove(indiceRemocao);
+                        estrutura.remove(valorRemocao);
+                    }
+                    break;
+
+                default:
+                    throw new IllegalArgumentException("Operação inválida no workload: " + operacao);
             }
-        } catch (IOException ignored) {}
-        return -1L;
+        }
+
+        memoriaSink = estrutura;
+        long depois = getHeapUsedBytes();
+        long memoria = Math.max(0, depois - antes);
+        memoriaSink = null;
+
+        return memoria;
     }
 
     protected abstract String getNomeEstrutura();
