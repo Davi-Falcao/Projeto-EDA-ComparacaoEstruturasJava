@@ -94,6 +94,8 @@ Durante cada execução foram coletadas duas métricas principais:
 
 Os resultados obtidos foram armazenados em arquivos no formato **CSV**, permitindo posteriormente a geração de **gráficos comparativos** que mostram o comportamento das estruturas analisadas em diferentes cenários de execução.
 
+---
+
 ## Estrutura do Benchmark
 
 O benchmark foi projetado utilizando um modelo de abstração que separa a lógica de medição da implementação das estruturas de dados.
@@ -118,13 +120,15 @@ public interface Estrutura {
     boolean search(int element);
 }
 
+---
+
 ## Controle de execução do benchmark
 
-A seleção da estrutura que será analisada é realizada pela classe **BenchController**.
+A seleção da estrutura que será analisada é realizada pela classe **BenchController**, responsável por intermediar a comunicação entre a aplicação e as implementações concretas de benchmark.
 
-Essa classe atua como um intermediário entre a aplicação e as implementações concretas de benchmark. A partir do nome da estrutura informado na execução do programa, o controlador identifica qual classe de benchmark deve ser utilizada.
+Essa classe recebe o nome da estrutura informado na execução do programa e identifica qual implementação de benchmark deve ser utilizada.
 
-Cada estrutura possui uma implementação específica de benchmark, como por exemplo:
+Cada estrutura possui uma classe específica de benchmark, como:
 
 - `BenchArrayList`
 - `BenchLinkedList`
@@ -134,14 +138,14 @@ Cada estrutura possui uma implementação específica de benchmark, como por exe
 - `BenchHeap`
 - `BenchPriorityQueue`
 
-O **BenchController** recebe o nome da estrutura, cria a instância correspondente de `Bench` e inicia a execução do experimento.
-
-O fluxo de execução ocorre da seguinte forma:
+O fluxo de execução do experimento ocorre da seguinte forma:
 
 1. A classe **App** recebe os parâmetros da linha de comando.
 2. O **BenchController** identifica qual benchmark deve ser executado.
-3. A classe concreta de **Bench** é instanciada.
+3. A implementação concreta de **Bench** é instanciada.
 4. O tamanho máximo da entrada é configurado.
-5. O método `run()` é chamado, iniciando os experimentos.
+5. O método `run()` inicia a execução dos experimentos.
 
-Essa organização centraliza a lógica de seleção das estruturas em um único ponto do sistema, facilitando a manutenção do código e a inclusão de novas estruturas no benchmark.
+Essa organização centraliza a lógica de seleção das estruturas em um único ponto do sistema, permitindo que novas estruturas sejam adicionadas ao benchmark sem alterar a lógica principal da aplicação.
+
+---
