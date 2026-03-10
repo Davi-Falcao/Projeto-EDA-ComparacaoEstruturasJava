@@ -1,11 +1,11 @@
 package dev.ProjetoEDA.service;
 
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
+import java.lang.management.MemoryMXBean;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -20,12 +20,11 @@ import dev.ProjetoEDA.model.Estrutura;
  * Classe abstrata base responsável por executar benchmarks sobre estruturas de dados.
  *
  * Esta classe organiza todo o fluxo de experimentação de forma padronizada para
- * qualquer implementação concreta de Estrutura. O processo completo segue quatro etapas:
+ * qualquer implementação concreta de Estrutura. O processo completo segue três etapas:
  *
  * 1. carregar os dados de entrada a partir dos arquivos CSV;
  * 2. executar benchmarks de operações isoladas;
- * 3. executar benchmarks de workloads mistos;
- * 4. gravar os resultados em arquivos CSV separados por estrutura, ordem e cenário.
+ * 3. executar benchmarks de workloads mistos.
  *
  * O objetivo dessa centralização é garantir que todas as estruturas sejam avaliadas
  * sob o mesmo protocolo experimental, com a mesma política de warmup, medição,
@@ -35,6 +34,9 @@ import dev.ProjetoEDA.model.Estrutura;
  * em um contexto controlado. Já os workloads mistos existem para observar o comportamento
  * da estrutura em um padrão de uso mais próximo de uma execução real, em que inserções,
  * buscas e remoções aparecem combinadas.
+ *
+ * A coluna de memória do CSV representa a ocupação aproximada da estrutura com n elementos,
+ * calculada separadamente do tempo da operação, mas gravada na mesma tabela de resultados.
  *
  * Antes das medições reais, a classe executa rodadas de warmup. Isso é feito para reduzir
  * o impacto de efeitos transitórios da JVM, como carregamento inicial de classes,
@@ -179,6 +181,12 @@ public abstract class Bench {
     protected static final int REPETICOES_REMOVE = 200;
 
     /**
+     * Referência auxiliar para impedir descarte prematuro do objeto medido
+     * no benchmark de memória.
+     */
+    private static volatile Object referenciaMemoria;
+
+    /**
      * Define o maior tamanho de entrada a ser usado na geração das escalas.
      *
      * @param tamanhoEntrada maior valor de entrada considerado no experimento
@@ -273,8 +281,8 @@ public abstract class Bench {
      * 3. gerar as escalas de tamanho de entrada;
      * 4. para cada escala, executar warmup, coletar medições e gravar a mediana.
      *
-     * A mediana é usada em vez da média final porque ela é mais robusta contra
-     * outliers, como pausas de garbage collector ou flutuações momentâneas do sistema.
+     * A coluna de memória representa a ocupação aproximada da estrutura com n elementos,
+     * calculada separadamente, mas gravada junto na mesma tabela.
      *
      * @param ordem ordem dos dados usada no experimento
      * @param operacao operação isolada a ser medida
@@ -289,20 +297,20 @@ public abstract class Bench {
                 executarWarmupOperacao(dados, n, operacao);
 
                 long[] tempos = new long[RODADAS_MEDICAO];
-                long[] memorias = new long[RODADAS_MEDICAO];
 
                 for (int rodada = 0; rodada < RODADAS_MEDICAO; rodada++) {
                     ResultadoOperacao resultado = medirOperacao(dados, n, operacao, rodada);
                     tempos[rodada] = resultado.tempoMedio;
-                    memorias[rodada] = resultado.memoriaMedia;
                 }
+
+                long memoriaEstrutura = medirMemoriaEstrutura(dados, n);
 
                 gravarLinhaResultado(
                         writer,
                         n,
                         operacao.name(),
                         calcularMediana(tempos),
-                        calcularMediana(memorias)
+                        memoriaEstrutura
                 );
             }
         }
@@ -318,7 +326,7 @@ public abstract class Bench {
      * @param n tamanho base da rodada
      * @param operacao operação a ser medida
      * @param rodada índice da rodada atual
-     * @return resultado contendo tempo médio e memória média da operação
+     * @return resultado contendo tempo médio da operação
      */
     protected ResultadoOperacao medirOperacao(List<Integer> dados, int n, Operacao operacao, int rodada) {
         switch (operacao) {
@@ -341,14 +349,7 @@ public abstract class Bench {
      * 1. uma nova estrutura é criada;
      * 2. a estrutura é previamente populada com n elementos;
      * 3. um elemento adicional é inserido;
-     * 4. o tempo e a memória dessa última inserção são acumulados.
-     *
-     * O motivo para popular a estrutura antes da medição é fazer com que a operação
-     * observada represente a inserção em uma estrutura já existente de tamanho n,
-     * e não apenas o custo de inserção em uma estrutura vazia.
-     *
-     * O valor inserido é deslocado por n, repetição e rodada para variar o elemento
-     * testado entre as execuções e evitar medir repetidamente a inserção do mesmo valor.
+     * 4. o tempo dessa última inserção é acumulado.
      *
      * @param dados lista de dados usada como base da construção e do elemento inserido
      * @param n tamanho inicial da estrutura antes da inserção medida
@@ -357,7 +358,6 @@ public abstract class Bench {
      */
     protected ResultadoOperacao medirAdd(List<Integer> dados, int n, int rodada) {
         long tempoTotal = 0L;
-        long memoriaTotal = 0L;
 
         for (int r = 0; r < REPETICOES_POR_AMOSTRA; r++) {
             Estrutura estrutura = criarEstrutura();
@@ -368,20 +368,15 @@ public abstract class Bench {
 
             int valorNovo = dados.get(n + r + rodada);
 
-            long memoriaAntes = getHeapUsedBytes();
             long inicio = System.nanoTime();
             estrutura.add(valorNovo);
             long fim = System.nanoTime();
-            long memoriaDepois = getHeapUsedBytes();
 
             tempoTotal += (fim - inicio);
-            memoriaTotal += Math.max(0, memoriaDepois - memoriaAntes);
         }
 
         long tempoMedio = tempoTotal / REPETICOES_POR_AMOSTRA;
-        long memoriaMedia = memoriaTotal / REPETICOES_POR_AMOSTRA;
-
-        return new ResultadoOperacao(tempoMedio, memoriaMedia);
+        return new ResultadoOperacao(tempoMedio, 0L);
     }
 
     /**
@@ -392,11 +387,7 @@ public abstract class Bench {
      * 1. uma nova estrutura é criada;
      * 2. a estrutura é preenchida com n elementos;
      * 3. um elemento já presente é buscado;
-     * 4. o tempo e a memória da busca são acumulados.
-     *
-     * O valor buscado é o elemento na posição n - 1 da lista usada para construir
-     * a estrutura. Isso garante que a busca ocorra sobre um elemento que realmente
-     * foi inserido na estrutura daquela repetição.
+     * 4. o tempo da busca é acumulado.
      *
      * @param dados lista de dados usada na construção da estrutura e na busca
      * @param n tamanho da estrutura consultada
@@ -405,7 +396,6 @@ public abstract class Bench {
      */
     protected ResultadoOperacao medirSearch(List<Integer> dados, int n, int rodada) {
         long tempoTotal = 0L;
-        long memoriaTotal = 0L;
 
         for (int r = 0; r < REPETICOES_POR_AMOSTRA; r++) {
             Estrutura estrutura = criarEstrutura();
@@ -416,20 +406,15 @@ public abstract class Bench {
 
             int valorBusca = dados.get(n - 1);
 
-            long memoriaAntes = getHeapUsedBytes();
             long inicio = System.nanoTime();
             estrutura.search(valorBusca);
             long fim = System.nanoTime();
-            long memoriaDepois = getHeapUsedBytes();
 
             tempoTotal += (fim - inicio);
-            memoriaTotal += Math.max(0, memoriaDepois - memoriaAntes);
         }
 
         long tempoMedio = tempoTotal / REPETICOES_POR_AMOSTRA;
-        long memoriaMedia = memoriaTotal / REPETICOES_POR_AMOSTRA;
-
-        return new ResultadoOperacao(tempoMedio, memoriaMedia);
+        return new ResultadoOperacao(tempoMedio, 0L);
     }
 
     /**
@@ -440,12 +425,7 @@ public abstract class Bench {
      * 1. uma nova estrutura é criada;
      * 2. a estrutura é preenchida com n elementos;
      * 3. um único elemento é removido;
-     * 4. o tempo e a memória da remoção são acumulados.
-     *
-     * Esse desenho experimental é importante porque evita medir uma sequência de remoções
-     * na mesma estrutura. Quando múltiplas remoções são feitas uma após a outra,
-     * o tamanho e a forma da estrutura mudam progressivamente, o que mistura o custo
-     * da operação remove com o efeito do esvaziamento da estrutura.
+     * 4. o tempo da remoção é acumulado.
      *
      * @param dados lista de dados usada na construção e na remoção
      * @param n tamanho da estrutura antes da remoção medida
@@ -454,7 +434,6 @@ public abstract class Bench {
      */
     protected ResultadoOperacao medirRemove(List<Integer> dados, int n, int rodada) {
         long tempoTotal = 0L;
-        long memoriaTotal = 0L;
 
         for (int r = 0; r < REPETICOES_REMOVE; r++) {
             Estrutura estrutura = criarEstrutura();
@@ -465,20 +444,48 @@ public abstract class Bench {
 
             int valor = dados.get(n - 1);
 
-            long memoriaAntes = getHeapUsedBytes();
             long inicio = System.nanoTime();
             estrutura.remove(valor);
             long fim = System.nanoTime();
-            long memoriaDepois = getHeapUsedBytes();
 
             tempoTotal += (fim - inicio);
-            memoriaTotal += Math.max(0, memoriaDepois - memoriaAntes);
         }
 
         long tempoMedio = tempoTotal / REPETICOES_REMOVE;
-        long memoriaMedia = memoriaTotal / REPETICOES_REMOVE;
+        return new ResultadoOperacao(tempoMedio, 0L);
+    }
 
-        return new ResultadoOperacao(tempoMedio, memoriaMedia);
+    /**
+     * Mede a ocupação de memória da estrutura após inserção de n elementos.
+     *
+     * @param dados lista de dados usada para popular a estrutura
+     * @param n tamanho da estrutura
+     * @return memória ocupada em bytes
+     */
+    protected long medirMemoriaEstrutura(List<Integer> dados, int n) {
+        long[] memorias = new long[RODADAS_MEDICAO];
+
+        for (int rodada = 0; rodada < RODADAS_MEDICAO; rodada++) {
+            estabilizarHeap();
+
+            long memoriaAntes = getHeapUsedBytes();
+
+            Estrutura estrutura = criarEstrutura();
+            for (int i = 0; i < n; i++) {
+                estrutura.add(dados.get(i));
+            }
+
+            referenciaMemoria = estrutura;
+            estabilizarHeap();
+
+            long memoriaDepois = getHeapUsedBytes();
+            memorias[rodada] = Math.max(0L, memoriaDepois - memoriaAntes);
+
+            referenciaMemoria = null;
+            estabilizarHeap();
+        }
+
+        return calcularMediana(memorias);
     }
 
     /**
@@ -494,9 +501,8 @@ public abstract class Bench {
      * 6. calcular o tempo médio por tipo de operação dentro da rodada;
      * 7. gravar a mediana dessas médias no CSV.
      *
-     * Esse modo é útil para simular cenários de uso mais realistas, mas não deve
-     * ser tomado como fonte primária para inferir o Big-O isolado de cada operação,
-     * pois as operações são executadas em sequência e influenciam o estado da estrutura.
+     * A coluna de memória representa a ocupação aproximada da estrutura com n elementos,
+     * calculada separadamente, mas gravada junto na mesma tabela.
      *
      * @param ordem ordem de entrada usada no experimento
      * @param caso cenário misto a ser executado
@@ -537,16 +543,18 @@ public abstract class Bench {
                     }
                 }
 
+                long memoriaEstrutura = medirMemoriaEstrutura(dados, n);
+
                 if (temAdd) {
-                    gravarLinhaResultado(writer, n, Operacao.ADD.name(), calcularMediana(temposAdd), 0);
+                    gravarLinhaResultado(writer, n, Operacao.ADD.name(), calcularMediana(temposAdd), memoriaEstrutura);
                 }
 
                 if (temSearch) {
-                    gravarLinhaResultado(writer, n, Operacao.SEARCH.name(), calcularMediana(temposSearch), 0);
+                    gravarLinhaResultado(writer, n, Operacao.SEARCH.name(), calcularMediana(temposSearch), memoriaEstrutura);
                 }
 
                 if (temRemove) {
-                    gravarLinhaResultado(writer, n, Operacao.REMOVE.name(), calcularMediana(temposRemove), 0);
+                    gravarLinhaResultado(writer, n, Operacao.REMOVE.name(), calcularMediana(temposRemove), memoriaEstrutura);
                 }
             }
         }
@@ -554,9 +562,6 @@ public abstract class Bench {
 
     /**
      * Executa as rodadas de warmup para um workload misto específico.
-     *
-     * Assim como no benchmark isolado, essas execuções não são gravadas e servem
-     * apenas para estabilizar a JVM e a execução do cenário antes das medições reais.
      *
      * @param dados lista de dados usada no workload
      * @param n número total de passos da rodada
@@ -571,20 +576,6 @@ public abstract class Bench {
 
     /**
      * Executa uma rodada completa de workload misto.
-     *
-     * O método cria uma estrutura vazia, mantém uma lista auxiliar de elementos ativos
-     * e percorre n passos. Em cada passo, escolhe qual operação deve ocorrer de acordo
-     * com o caso misto informado.
-     *
-     * A lista de ativos existe para garantir coerência entre as operações:
-     *
-     * 1. elementos inseridos passam a ser candidatos para busca e remoção;
-     * 2. elementos removidos deixam de ser candidatos nas próximas etapas;
-     * 3. buscas e remoções atuam apenas sobre valores efetivamente presentes.
-     *
-     * O gerador pseudoaleatório recebe uma semente derivada de n, rodada, ordem e caso.
-     * Isso é feito para tornar a sequência de escolhas reprodutível e estável entre execuções,
-     * permitindo comparar estruturas sob o mesmo padrão de acessos.
      *
      * @param dados lista de dados usada pelo workload
      * @param n quantidade total de passos da rodada
@@ -660,9 +651,6 @@ public abstract class Bench {
     /**
      * Determina qual operação deve ser executada em um passo do workload.
      *
-     * A decisão é feita a partir do caso misto e da posição atual dentro da rodada.
-     * Isso permite que a distribuição percentual de operações seja mantida com base em n.
-     *
      * @param caso cenário misto em execução
      * @param passo posição atual dentro da rodada
      * @param n quantidade total de passos da rodada
@@ -734,13 +722,6 @@ public abstract class Bench {
     /**
      * Gera as escalas de tamanho de entrada usadas no experimento.
      *
-     * O método produz no máximo 10 valores entre 100 e o tamanho máximo definido em entrada.
-     * A distribuição é logarítmica, e não linear, para permitir observar melhor o crescimento
-     * da estrutura em diferentes ordens de grandeza.
-     *
-     * O valor máximo sempre é incluído explicitamente para garantir que o experimento
-     * alcance a entrada final configurada.
-     *
      * @return vetor com os tamanhos de entrada do benchmark
      */
     protected int[] gerarEscalas() {
@@ -748,7 +729,7 @@ public abstract class Bench {
         int maximo = entrada;
 
         if (maximo <= minimo) {
-            return new int[]{maximo};
+            return new int[] { maximo };
         }
 
         int quantidade = 10;
@@ -775,9 +756,6 @@ public abstract class Bench {
     /**
      * Distribui um índice ao longo do intervalo da estrutura.
      *
-     * Esse método pode ser usado quando se deseja espalhar acessos por todo o domínio
-     * de índices disponíveis, evitando concentração excessiva em apenas uma região.
-     *
      * @param iteracao posição atual da iteração
      * @param total número total de iterações
      * @param tamanho tamanho máximo do intervalo
@@ -794,9 +772,6 @@ public abstract class Bench {
 
     /**
      * Calcula a mediana de um vetor de valores long.
-     *
-     * A mediana é usada como valor final das rodadas porque é menos sensível
-     * a variações extremas do que a média aritmética simples.
      *
      * @param valores vetor de valores a ser ordenado e analisado
      * @return valor mediano do conjunto
@@ -837,9 +812,6 @@ public abstract class Bench {
     /**
      * Gera o caminho do arquivo CSV de saída para um benchmark de operação isolada.
      *
-     * O nome do arquivo incorpora a estrutura, a ordem e a operação para manter
-     * a organização dos resultados e evitar sobreposição entre experimentos distintos.
-     *
      * @param ordem ordem de entrada do experimento
      * @param operacao operação isolada medida
      * @return caminho completo do arquivo CSV
@@ -854,8 +826,6 @@ public abstract class Bench {
     /**
      * Gera o caminho do arquivo CSV de saída para um benchmark de workload misto.
      *
-     * O nome do arquivo incorpora a estrutura, a ordem e o caso misto executado.
-     *
      * @param ordem ordem de entrada do experimento
      * @param caso cenário misto medido
      * @return caminho completo do arquivo CSV
@@ -869,9 +839,6 @@ public abstract class Bench {
 
     /**
      * Cria e inicializa o arquivo CSV de saída.
-     *
-     * Se o diretório ou o arquivo ainda não existirem, eles são criados.
-     * Em seguida, o cabeçalho padrão é escrito no arquivo.
      *
      * @param resultFilePath caminho do arquivo de saída
      * @return writer já posicionado para escrita do conteúdo
@@ -895,8 +862,6 @@ public abstract class Bench {
 
     /**
      * Grava uma linha de resultado no arquivo CSV.
-     *
-     * Cada linha representa uma operação em um tamanho de entrada específico.
      *
      * @param writer writer associado ao arquivo de saída
      * @param tamanhoEntrada tamanho de entrada medido
@@ -923,10 +888,6 @@ public abstract class Bench {
     /**
      * Carrega os arquivos de entrada em memória.
      *
-     * A leitura ocorre apenas uma vez por execução, controlada pela flag
-     * dadosCarregados. Isso melhora a eficiência do benchmark e garante
-     * que a fase de medição não seja contaminada por leituras repetidas de disco.
-     *
      * @throws IOException quando ocorre falha na leitura dos arquivos
      */
     protected void lerDados() throws IOException {
@@ -943,9 +904,6 @@ public abstract class Bench {
 
     /**
      * Lê um arquivo CSV e extrai a primeira coluna numérica de cada linha válida.
-     *
-     * O método remove espaços, ignora linhas vazias e ignora linhas que contenham
-     * letras, o que evita tratar cabeçalhos ou conteúdos não numéricos como dados.
      *
      * @param path caminho do arquivo a ser lido
      * @return lista de inteiros extraída do arquivo
@@ -964,46 +922,30 @@ public abstract class Bench {
     }
 
     /**
-     * Retorna a métrica de memória usada pelo benchmark.
+     * Retorna a quantidade de heap atualmente usada pela JVM.
      *
-     * Atualmente a classe utiliza o RSS do processo como aproximação do consumo
-     * de memória observável do programa durante a execução.
-     *
-     * @return quantidade de bytes atualmente atribuída ao processo
+     * @return heap usada em bytes
      */
     protected long getHeapUsedBytes() {
-        return getProcessRssBytes();
+        MemoryMXBean memoryMXBean = ManagementFactory.getMemoryMXBean();
+        return memoryMXBean.getHeapMemoryUsage().getUsed();
     }
 
     /**
-     * Lê o RSS do processo Java em execução no Linux a partir de /proc/self/status.
-     *
-     * O valor retornado corresponde à memória residente do processo em bytes.
-     * Essa escolha fornece uma medida externa do consumo efetivo observado pelo sistema.
-     *
-     * Caso a leitura falhe, o método retorna -1.
-     *
-     * @return RSS do processo em bytes ou -1 em caso de falha
+     * Tenta estabilizar a heap antes de uma leitura de memória.
      */
-    protected static long getProcessRssBytes() {
-        try (BufferedReader br = new BufferedReader(new FileReader("/proc/self/status"))) {
-            String s;
-            while ((s = br.readLine()) != null) {
-                if (s.startsWith("VmRSS:")) {
-                    String[] parts = s.trim().split("\\s+");
-                    long kb = Long.parseLong(parts[1]);
-                    return kb * 1024L;
-                }
-            }
-        } catch (IOException ignored) {
+    protected void estabilizarHeap() {
+        System.gc();
+        System.runFinalization();
+        try {
+            Thread.sleep(50);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
-        return -1L;
     }
 
     /**
      * Retorna o nome da estrutura concreta em benchmark.
-     *
-     * Esse nome é usado principalmente para compor os caminhos dos arquivos de saída.
      *
      * @return nome textual da estrutura
      */
@@ -1011,9 +953,6 @@ public abstract class Bench {
 
     /**
      * Cria uma nova instância vazia da estrutura concreta em benchmark.
-     *
-     * Cada medição parte de uma nova instância para evitar que o estado produzido
-     * por uma repetição interfira nas demais.
      *
      * @return nova estrutura vazia
      */
