@@ -9,7 +9,7 @@ package dev.ProjetoEDA.model;
 public class ArrayList implements Estrutura {
 
     private int[] lista;
-    public static final int CAPACIDADE_DEFAULT = 10000;
+    public static final int CAPACIDADE_DEFAULT = 3000;
     private int tamanho;
 
     /**
