@@ -44,7 +44,7 @@ result_<Nome_da_Estrutura>_<ordem>_<Caso>.csv
 
 Executar o a plotagem:
 ```bash
-python ./scripts/generate_graphs.py <nome_estrutura>
+python ./scripts/generatorGraphs/generate_graphs.py <nome_estrutura>
 ```
 Os graficos são salvos automaticamente em:
 ```bash
