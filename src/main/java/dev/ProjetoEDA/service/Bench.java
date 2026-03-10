@@ -65,7 +65,8 @@ public abstract class Bench {
         C100I0R0S("100I0R0S"),
         C75I25R0S("75I25R0S"),
         C50I25R25S("50I25R25S"),
-        C50I0R50S("50I0R50S");
+        C50I0R50S("50I0R50S"),
+	C50I50R0S("50I50R0S");
 
         /**
          * Nome textual do cenário, usado principalmente para compor nomes de arquivos.
@@ -114,7 +115,8 @@ public abstract class Bench {
         CasoMisto.C100I0R0S,
         CasoMisto.C75I25R0S,
         CasoMisto.C50I25R25S,
-        CasoMisto.C50I0R50S
+        CasoMisto.C50I0R50S,
+	CasoMisto.C50I50R0S
     };
 
     /**
@@ -664,6 +666,7 @@ public abstract class Bench {
             case C100I0R0S:
                 return Operacao.ADD;
             case C75I25R0S:
+            case C50I50R0S:
                 return passo < qtdAdd ? Operacao.ADD : Operacao.REMOVE;
             case C50I25R25S:
                 if (passo < qtdAdd) {
@@ -695,6 +698,7 @@ public abstract class Bench {
                 return (int) Math.round(n * 0.75);
             case C50I25R25S:
             case C50I0R50S:
+            case C50I50R0S:
                 return n / 2;
             default:
                 return 0;
