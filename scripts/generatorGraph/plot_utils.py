@@ -5,17 +5,6 @@ import matplotlib.pyplot as plt
 
 
 def read_points(csv_path):
-    """
-    CSV esperado:
-      0 TamanhoEntrada
-      1 Operacao
-      2 TempoMedio(ns)
-      3 MemoriaUso(bytes)
-
-    Retorna:
-    - tempo_series:   dict[operacao] -> list[(entrada, tempo_ns)]
-    - memoria_series: dict[operacao] -> list[(entrada, memoria_bytes)]
-    """
     tempo_series = defaultdict(list)
     memoria_series = defaultdict(list)
 
@@ -67,11 +56,6 @@ def garantir_diretorio(path):
 
 
 def extrair_titulo_base(csv_path):
-    """
-    Formatos aceitos:
-      result_<estrutura>_<ordem>_<operacao>.csv
-      result_<estrutura>_<ordem>_workload_<caso>.csv
-    """
     nome_arquivo = os.path.basename(csv_path)
     nome_sem_ext = os.path.splitext(nome_arquivo)[0]
     partes = nome_sem_ext.split("_")
@@ -88,30 +72,28 @@ def extrair_titulo_base(csv_path):
     return None, None, None, None
 
 
-def aplicar_limite_y_condicional(series_dict, limite_y=None):
-    """
-    Aplica limite máximo no eixo Y apenas se todos os valores
-    do gráfico couberem dentro desse limite.
-    """
-    if limite_y is None or not series_dict:
+def aplicar_limite_y_condicional(series_dict, limite_y=None, margem=0.10):
+    if not series_dict:
         return
 
-    valores = [
-        y
-        for pts in series_dict.values()
-        for _, y in pts
-    ]
+    valores = [y for pts in series_dict.values() for _, y in pts]
 
     if not valores:
         return
 
     ymax = max(valores)
 
-    if ymax <= limite_y:
-        plt.ylim(top=limite_y)
+    if limite_y is not None:
+        if ymax <= limite_y:
+            plt.ylim(0, limite_y)
+    else:
+        topo = ymax * (1 + margem)
+        if topo == 0:
+            topo = 1
+        plt.ylim(0, topo)
 
 
-def plot_series(series_dict, ylabel, title, output_path=None, limite_y=None):
+def plot_series(series_dict, ylabel, title, output_path=None, limite_y=None, x_log=False):
     plt.figure(figsize=(10, 6))
 
     for operacao, pts in series_dict.items():
@@ -126,7 +108,9 @@ def plot_series(series_dict, ylabel, title, output_path=None, limite_y=None):
     if series_dict:
         plt.legend()
 
-    plt.xscale("log")
+    if x_log:
+        plt.xscale("log")
+
     aplicar_limite_y_condicional(series_dict, limite_y)
     plt.grid(True, which="both", linestyle="--", alpha=0.4)
     plt.tight_layout()
@@ -141,7 +125,7 @@ def plot_series(series_dict, ylabel, title, output_path=None, limite_y=None):
         plt.show()
 
 
-def plot_time_csv(csv_path, output_path=None, limite_y=None):
+def plot_time_csv(csv_path, output_path=None, limite_y=None, x_log=False):
     tempo_series, _ = read_points(csv_path)
     estrutura, ordem, tipo, alvo = extrair_titulo_base(csv_path)
 
@@ -155,11 +139,12 @@ def plot_time_csv(csv_path, output_path=None, limite_y=None):
         ylabel="Tempo médio por operação (ns)",
         title=title,
         output_path=output_path,
-        limite_y=limite_y
+        limite_y=limite_y,
+        x_log=x_log
     )
 
 
-def plot_mem_csv(csv_path, output_path=None, limite_y=None):
+def plot_mem_csv(csv_path, output_path=None, limite_y=None, x_log=False):
     _, memoria_series = read_points(csv_path)
     estrutura, ordem, tipo, alvo = extrair_titulo_base(csv_path)
 
@@ -173,15 +158,12 @@ def plot_mem_csv(csv_path, output_path=None, limite_y=None):
         ylabel="Memória usada (bytes)",
         title=title,
         output_path=output_path,
-        limite_y=limite_y
+        limite_y=limite_y,
+        x_log=x_log
     )
 
 
 def juntar_series_csvs(csv_paths, tipo="tempo"):
-    """
-    Junta várias séries de CSVs em uma única estrutura agregada.
-    Ideal para agrupar add/search/remove da mesma ordem.
-    """
     series_final = defaultdict(list)
 
     for csv_path in csv_paths:
@@ -203,12 +185,9 @@ def plot_referencia_agrupada(
     ordem,
     output_path=None,
     tipo="tempo",
-    limite_y=None
+    limite_y=None,
+    x_log=False
 ):
-    """
-    Gera um gráfico único com todas as operações de referência
-    da mesma ordem: add, search e remove.
-    """
     series = juntar_series_csvs(csv_paths, tipo=tipo)
 
     if tipo == "tempo":
@@ -223,5 +202,6 @@ def plot_referencia_agrupada(
         ylabel=ylabel,
         title=title,
         output_path=output_path,
-        limite_y=limite_y
+        limite_y=limite_y,
+        x_log=x_log
     )

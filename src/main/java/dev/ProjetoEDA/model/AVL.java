@@ -19,9 +19,15 @@ public class AVL implements Estrutura {
     }
 
     private boolean isAVL(Node node) {
-        if (node == null) return true;
-        int blc = Math.abs(balance(node));
-        if (blc >= 2) return false;
+        if (node == null) {
+            return true;
+        }
+
+        int fator = Math.abs(balance(node));
+        if (fator >= 2) {
+            return false;
+        }
+
         return isAVL(node.left) && isAVL(node.right);
     }
 
@@ -30,29 +36,46 @@ public class AVL implements Estrutura {
     }
 
     private int height(Node node) {
-        if (node == null) return -1;
-        return 1 + Math.max(height(node.left), height(node.right));
+        return node == null ? -1 : node.height;
+    }
+
+    private void updateHeight(Node node) {
+        if (node != null) {
+            node.height = 1 + Math.max(height(node.left), height(node.right));
+        }
     }
 
     private int balance(Node node) {
+        if (node == null) {
+            return 0;
+        }
         return height(node.left) - height(node.right);
     }
 
-    private void rotate(Node des) {
-        if (balance(des) >= 2) {
-            if (balance(des.left) >= 0) {
-                rotacaoDireita(des);
-            } else {
-                rotacaoEsquerda(des.left);
-                rotacaoDireita(des);
+    private void rebalance(Node node) {
+        updateHeight(node);
+
+        int balance = balance(node);
+
+        if (balance >= 2) {
+            if (balance(node.left) < 0) {
+                rotacaoEsquerda(node.left);
             }
-        } else if (balance(des) <= -2) {
-            if (balance(des.right) <= 0) {
-                rotacaoEsquerda(des);
-            } else {
-                rotacaoDireita(des.right);
-                rotacaoEsquerda(des);
+            rotacaoDireita(node);
+        } else if (balance <= -2) {
+            if (balance(node.right) > 0) {
+                rotacaoDireita(node.right);
             }
+            rotacaoEsquerda(node);
+        }
+    }
+
+    private void rebalanceUp(Node node) {
+        Node current = node;
+
+        while (current != null) {
+            rebalance(current);
+            current = current.parent;
         }
     }
 
@@ -61,21 +84,25 @@ public class AVL implements Estrutura {
         Node y = x.left;
 
         x.left = y.right;
-
-        if (y.right != null)
+        if (y.right != null) {
             y.right.parent = x;
+        }
 
         y.parent = x.parent;
 
-        if (x.parent == null)
+        if (x.parent == null) {
             this.root = y;
-        else if (x == x.parent.left)
+        } else if (x == x.parent.left) {
             x.parent.left = y;
-        else
+        } else {
             x.parent.right = y;
+        }
 
         y.right = x;
         x.parent = y;
+
+        updateHeight(x);
+        updateHeight(y);
     }
 
     private void rotacaoEsquerda(Node n) {
@@ -83,21 +110,25 @@ public class AVL implements Estrutura {
         Node y = x.right;
 
         x.right = y.left;
-
-        if (y.left != null)
+        if (y.left != null) {
             y.left.parent = x;
+        }
 
         y.parent = x.parent;
 
-        if (x.parent == null)
+        if (x.parent == null) {
             this.root = y;
-        else if (x == x.parent.left)
+        } else if (x == x.parent.left) {
             x.parent.left = y;
-        else
+        } else {
             x.parent.right = y;
+        }
 
         y.left = x;
         x.parent = y;
+
+        updateHeight(x);
+        updateHeight(y);
     }
 
     @Override
@@ -109,13 +140,15 @@ public class AVL implements Estrutura {
         Node aux = this.root;
 
         while (aux != null) {
-            if (element == aux.value)
+            if (element == aux.value) {
                 return aux;
+            }
 
-            if (element < aux.value)
+            if (element < aux.value) {
                 aux = aux.left;
-            else
+            } else {
                 aux = aux.right;
+            }
         }
 
         return null;
@@ -142,7 +175,7 @@ public class AVL implements Estrutura {
                     aux.left = newNode;
                     newNode.parent = aux;
                     size++;
-                    rebalanceUp(newNode);
+                    rebalanceUp(aux);
                     return true;
                 }
 
@@ -153,7 +186,7 @@ public class AVL implements Estrutura {
                     aux.right = newNode;
                     newNode.parent = aux;
                     size++;
-                    rebalanceUp(newNode);
+                    rebalanceUp(aux);
                     return true;
                 }
 
@@ -162,97 +195,65 @@ public class AVL implements Estrutura {
         }
     }
 
-    private void rebalanceUp(Node node) {
-        Node current = node;
-
-        while (current != null) {
-            rotate(current);
-            current = current.parent;
-        }
-    }
-
     @Override
     public boolean remove(int value) {
         Node toRemove = searchNode(value);
 
-        if (toRemove == null)
+        if (toRemove == null) {
             return false;
-
-        Node parent = toRemove.parent;
+        }
 
         removeNode(toRemove);
-
         size--;
-
-        rebalanceUp(parent);
         return true;
     }
 
     private void removeNode(Node node) {
-        if (node.isLeaf()) {
-            if (node == root)
-                root = null;
-            else if (node == node.parent.left)
-                node.parent.left = null;
-            else
-                node.parent.right = null;
-
-        } else if (node.hasOnlyLeftChild()) {
-            Node child = node.left;
-
-            if (node == root) {
-                root = child;
-                child.parent = null;
-            } else {
-                if (node == node.parent.left)
-                    node.parent.left = child;
-                else
-                    node.parent.right = child;
-
-                child.parent = node.parent;
-            }
-
-        } else if (node.hasOnlyRightChild()) {
-            Node child = node.right;
-
-            if (node == root) {
-                root = child;
-                child.parent = null;
-            } else {
-                if (node == node.parent.left)
-                    node.parent.left = child;
-                else
-                    node.parent.right = child;
-
-                child.parent = node.parent;
-            }
-
-        } else {
+        if (node.left != null && node.right != null) {
             Node sucessor = sucessor(node);
-
             node.value = sucessor.value;
-
             removeNode(sucessor);
+            return;
+        }
+
+        Node child = (node.left != null) ? node.left : node.right;
+        Node parent = node.parent;
+
+        if (child != null) {
+            child.parent = parent;
+        }
+
+        if (parent == null) {
+            root = child;
+        } else if (node == parent.left) {
+            parent.left = child;
+        } else {
+            parent.right = child;
+        }
+
+        if (parent != null) {
+            rebalanceUp(parent);
+        } else if (root != null) {
+            updateHeight(root);
         }
     }
 
     public Node min() {
-        Node node = root;
-        while (node.left != null)
-            node = node.left;
-        return node;
+        return min(root);
     }
 
     public Node max() {
-        Node node = root;
-        while (node.right != null)
-            node = node.right;
-        return node;
+        return max(root);
     }
 
     public Node predecessor(Node node) {
-        if (node.left != null)
+        if (node == null) {
+            return null;
+        }
+
+        if (node.left != null) {
             return max(node.left);
+        }
 
         Node parent = node.parent;
 
@@ -265,8 +266,13 @@ public class AVL implements Estrutura {
     }
 
     public Node sucessor(Node node) {
-        if (node.right != null)
+        if (node == null) {
+            return null;
+        }
+
+        if (node.right != null) {
             return min(node.right);
+        }
 
         Node parent = node.parent;
 
@@ -281,37 +287,50 @@ public class AVL implements Estrutura {
     public ArrayList<Integer> bfs() {
         ArrayList<Integer> list = new ArrayList<>();
 
-        if (root == null)
+        if (root == null) {
             return list;
+        }
 
         Deque<Node> queue = new LinkedList<>();
-
         queue.add(root);
 
         while (!queue.isEmpty()) {
             Node current = queue.remove();
-
             list.add(current.value);
 
-            if (current.left != null)
+            if (current.left != null) {
                 queue.add(current.left);
+            }
 
-            if (current.right != null)
+            if (current.right != null) {
                 queue.add(current.right);
+            }
         }
 
         return list;
     }
 
     private Node min(Node node) {
-        if (node == null) return null;
-        while (node.left != null) node = node.left;
+        if (node == null) {
+            return null;
+        }
+
+        while (node.left != null) {
+            node = node.left;
+        }
+
         return node;
     }
 
     private Node max(Node node) {
-        if (node == null) return null;
-        while (node.right != null) node = node.right;
+        if (node == null) {
+            return null;
+        }
+
+        while (node.right != null) {
+            node = node.right;
+        }
+
         return node;
     }
 
@@ -321,12 +340,14 @@ public class AVL implements Estrutura {
 
     class Node {
         int value;
+        int height;
         Node left;
         Node right;
         Node parent;
 
         Node(int value) {
             this.value = value;
+            this.height = 0;
         }
 
         boolean hasOnlyLeftChild() {
