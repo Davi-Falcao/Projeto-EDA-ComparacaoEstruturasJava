@@ -119,7 +119,7 @@ public interface Estrutura {
     boolean remove(int element);
     boolean search(int element);
 }
-
+```
 ---
 
 ## Controle de execução do benchmark
