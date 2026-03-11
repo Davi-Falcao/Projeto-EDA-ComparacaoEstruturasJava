@@ -74,22 +74,8 @@ public class Heap implements Estrutura {
 
     @Override
     public boolean remove(int element) {
-        for (int i = 0; i <= tail; i++) {
-            if (heap[i] == element) {
-                heap[i] = heap[tail];
-                tail -= 1;
-                if (i <= tail) {
-                    int current = i;
-                    while (current > 0 && heap[parent(current)] < heap[current]) {
-                        swap(current, parent(current));
-                        current = parent(current);
-                    }
-                    heapify(current);
-                }
-                return true;
-            }
-        }
-        return false;
+        remove();
+        return true;
     }
 
     @Override

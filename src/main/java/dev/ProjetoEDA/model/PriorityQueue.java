@@ -66,17 +66,8 @@ public class PriorityQueue implements Estrutura {
 
     @Override
     public boolean remove(int value){
-        for (int i = 0; i <= this.tail; i++) {
-            if (this.fila[i] == value) {
-                for (int j = i; j < this.tail; j++) {
-                    this.fila[j] = this.fila[j + 1];
-                }
-                this.tail--;
-                this.size--;
-                return true;
-            }
-        }
-        return false;
+        remove();
+        return true;
     }
 
     @Override
