@@ -51,7 +51,7 @@ repository/result/<Nome_estrutura>/
 ```
 padrão do resultado
 ```bash
-result_<Nome_da_Estrutura>_<ordem>_<Caso>.csv
+result_<Nome_da_Estrutura>_<ordem>_workload_<Caso>.csv
 ```
 
 ## 4) Gerar plotagem de gráficos automática
@@ -83,7 +83,7 @@ Além disso, os experimentos foram executados utilizando diferentes padrões de 
 - **Crescente** — valores ordenados de forma estritamente crescente
 - **Decrescente** — valores ordenados de forma estritamente decrescente
 
-Cada arquivo de dados utilizado nesse experimento possue 10⁶ elementos, porém foi utilizado 10⁴ na BST por limitações de hardware e 10⁵ nas demais estruturas, com valores positivos que podem chegar até 10⁸. Sendo esses arquivos gerados por um script em **bash**.
+Cada arquivo de dados utilizado nesse experimento possue 10⁶ elementos, porém foi utilizado 10³ na BST por limitações de hardware e 10⁵ nas demais estruturas, com valores positivos que podem chegar até 10⁸. Sendo esses arquivos gerados por um script em **bash**.
 
 Durante cada execução foram coletadas duas métricas principais:
 
