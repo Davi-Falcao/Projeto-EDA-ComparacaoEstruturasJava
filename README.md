@@ -1,13 +1,27 @@
 # Projeto EDA - Comparação de Estruturas em Java
+Repositório com estudo de desempenho baseado em operações comuns entre as seguintes estruturas de dados:
 
-Projeto para benchmark de operações em estruturas de dados, medindo por operação:
-- `TempoExecucao(ns)`
-- `MemoriaUso(bytes)`
+- **ArrayList**
+- **LinkedList**
+- **Binary Search Tree (BST)**
+- **AVL Tree**
+- **Árvore Rubro-Negra (PV)**
+- **Heap**
+- **PriorityQueue**
 
-As operações de entrada são:
-- `I`: inserção
-- `R`: remoção
-- `S`: busca
+# Introdução e Objetivo
+
+A compreensão do comportamento das estruturas de dados é essencial para utilização eficiente em diferentes situações, garantindo um código otimizado. Por isso, várias estruturas com visões e construções distintas surgiram para resolver problemas relacionados ao gerenciamento de dados. Neste projeto, diferentes implementações de listas, filas e árvores foram comparadas em diversos contextos, visando observar como cada uma lida com diferentes cargas de operações e volumes de dados. Os resultados de desempenho foram extraídos a partir do uso de memória e do tempo de execução nos diferentes cenários escolhidos.
+
+Para garantir coesão de comparação, estruturas com objetivos semelhantes foram analisadas:
+
+- **ArrayList X LinkedList** 
+
+- **Heap X PriorityQueue**
+
+- **BST (Binary Search Tree) X AVL X PV (Árvore Rubro-Negra)**
+
+Dessa forma, este estudo tem como objetivo aprofundar o conhecimento já existente na teoria, explorando tanto a complexidade quanto a implementação prática. Busca-se analisar a execução real, com informações concretas que permitam refletir e chegar a conclusões sobre quando utilizar cada estrutura e avaliar sua aplicabilidade de acordo com o contexto do seu trabalho, tanto pequenas entradas com poucos acessos ou até dados gigantes com várias alterações recorrentes.
 
 ## 1) Pré-requisitos
 
@@ -51,24 +65,6 @@ Os gráficos são salvos automaticamente em:
 repository/result/graphs/<Nome_estrutura>
 ```
 
-# Análise de Estruturas de Dados
-
-Este repositório contém a experimentação realizada sobre a comparação de diferentes estruturas de dados que apresentam operações semelhantes, com o objetivo de analisar o impacto de cada implementação em termos de eficiência.
-
-As estruturas avaliadas no experimento são:
-
-- **ArrayList**
-- **LinkedList**
-- **Binary Search Tree (BST)**
-- **AVL Tree**
-- **Árvore Rubro-Negra (PV)**
-- **Heap**
-- **PriorityQueue**
-
-Cada uma dessas estruturas possui características próprias de organização interna, o que influencia diretamente o custo das operações realizadas sobre os dados.
-
----
-
 # Metodologia do Experimento
 
 A experimentação realizada neste projeto foi baseada na execução de diferentes cenários de operações aplicadas às estruturas analisadas. Esses cenários representam diferentes combinações de inserção, remoção e busca, simulando possíveis padrões de uso encontrados em aplicações reais.
@@ -87,7 +83,7 @@ Além disso, os experimentos foram executados utilizando diferentes padrões de 
 - **Crescente** — valores ordenados de forma estritamente crescente
 - **Decrescente** — valores ordenados de forma estritamente decrescente
 
-Cada arquivo de dados utilizado nesse experimento possue 10⁶ elementos com valores positivos que podem chegar até 10⁸, sendo esses arquivos gerados por um script em **bash**.
+Cada arquivo de dados utilizado nesse experimento possue 10⁶ elementos, porém foi utilizado 10⁴ na BST por limitações de hardware e 10⁵ nas demais estruturas, com valores positivos que podem chegar até 10⁸. Sendo esses arquivos gerados por um script em **bash**.
 
 Durante cada execução foram coletadas duas métricas principais:
 
