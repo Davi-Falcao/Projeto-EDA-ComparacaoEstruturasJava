@@ -333,30 +333,29 @@ public abstract class Bench {
      * @return memória ocupada em bytes
      */
     protected long medirMemoriaEstrutura(List<Integer> dados, int n) {
-        long[] memorias = new long[RODADAS_MEDICAO];
+    long[] memorias = new long[RODADAS_MEDICAO];
 
-        for (int rodada = 0; rodada < RODADAS_MEDICAO; rodada++) {
-            estabilizarHeap();
+    for (int rodada = 0; rodada < RODADAS_MEDICAO; rodada++) {
+        estabilizarHeap();
+        long memoriaAntes = getHeapUsedBytes();
 
-            long memoriaAntes = getHeapUsedBytes();
-
-            Estrutura estrutura = criarEstrutura();
-            for (int i = 0; i < n; i++) {
-                estrutura.add(dados.get(i));
-            }
-
-            referenciaMemoria = estrutura;
-            estabilizarHeap();
-
-            long memoriaDepois = getHeapUsedBytes();
-            memorias[rodada] = Math.max(0L, memoriaDepois - memoriaAntes);
-
-            referenciaMemoria = null;
-            estabilizarHeap();
+        Estrutura estrutura = criarEstrutura();
+        for (int i = 0; i < n; i++) {
+            estrutura.add(dados.get(i));
         }
 
-        return calcularMediana(memorias);
+        referenciaMemoria = estrutura;
+
+        estabilizarHeap();
+        long memoriaDepois = getHeapUsedBytes();
+
+        memorias[rodada] = Math.max(0L, memoriaDepois - memoriaAntes);
+
+        referenciaMemoria = null;
     }
+
+    return calcularMediana(memorias);
+}
 
     /**
      * Executa o experimento de workload misto para uma ordem e um cenário específicos.
@@ -785,15 +784,10 @@ public abstract class Bench {
     /**
      * Executa rotinas para reduzir ruído antes de leituras de memória.
      */
-    protected void estabilizarHeap() {
-        System.gc();
-        System.runFinalization();
-        try {
-            Thread.sleep(5);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
-    }
+   protected void estabilizarHeap() {
+    System.gc();
+    System.runFinalization();
+}
 
     /**
      * Retorna o nome textual da estrutura em benchmark.
