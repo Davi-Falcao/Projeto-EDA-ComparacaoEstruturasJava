@@ -415,7 +415,7 @@ Em síntese muitas varíaveis devem ser analisadas antes de definir a melhor est
 
 ---
 
-### Referências ### 
+## Referências ## 
 
 XAVIER, Luiz Gustavo Coutinho; MENDIZABAL, Odorico M. Análise de Desempenho de Estruturas de Dados Concorrentes Implementadas na Linguagem Java. In: Escola Regional de Alto Desempenho da Região Sul (ERAD-RS). SBC, 2019.Acesso em: 14 fev. 2026.
 
