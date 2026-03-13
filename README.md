@@ -309,8 +309,6 @@ Abaixo os gráficos provam esse crescimento parelho entre as estruturas.
 |-----------|-----------|
 | ![Graphic](src/main/java/dev/ProjetoEDA/repository/graphs/avl/avl_random_workload_100I0R0S_memoria.png) | ![Graphic](src/main/java/dev/ProjetoEDA/repository/graphs/pv/pv_random_workload_100I0R0S_memoria.png) |
 
----
-
 ### Tempo de Execução ###
 
 Distintamente do consumo de memória, o tempo de execução difere significativamente tanto dentro de uma mesma árvore quanto entre estruturas diferentes. Fatores como carga de operações e a ordem de inserção dos dados influenciam diretamente a eficiência das árvores. Com isso, dois cenários principais foram analisados a fim de permitir uma compreensão abrangente do comportamento e desempenho dessas estruturas no estudo, evitando repetições de dados e conclusões.
@@ -351,5 +349,51 @@ As estrutura AVL e PV não apresentaram mudanças de comportamento graças ao au
 |           |           |
 |-----------|-----------|
 | ![Graphic](src/main/java/dev/ProjetoEDA/repository/graphs/pv/pv_crescente_workload_50I50R0S_tempo.png) | ![Graphic](src/main/java/dev/ProjetoEDA/repository/graphs/pv/pv_crescente_workload_50I0R50S_tempo.png) |
+
+---
+
+## Heap X PriorityQueue ##
+
+### Uso de Memória ###
+
+Heap e PriorityQueue são estruturas que utilizam de um array para armazenar seus elementos. Com isso, o uso de memória é medido pelo consumo do array inicial multiplicado pela quantidade de vezes que ele é redimensionado. Seguindo a mesma lógica de arraylist e linkedlist, o gráfico cresce de maneira exeponencial mas com a vatagem de ser um espaço de memória contíguo que quanto maior a entrada menos frequentes são os redimensionamentos. Nas implementações desse estudo ambas estruturas possuem capacidade inicial em 20 posições.
+
+Portanto, em questões de consumo de memória, ambas as estruturas são equivalentes e não apresentam diferenças perceptíveis.
+
+|           |           |  
+|-----------|-----------|                                                                          
+|![Graphic](src/main/java/dev/ProjetoEDA/repository/graphs/heap/heap_random_workload_100I0R0S_memoria.png) | ![Graphic](src/main/java/dev/ProjetoEDA/repository/graphs/priorityqueue/priorityqueue_random_workload_100I0R0S_memoria.png) |
+
+### Tempo de Execução ###
+
+Para deixar claro o quão distinto o desempenho em Heap e PriorityQueue é, todas as operações serão analisadas ao mesmo tempo no cenário **50I25R25S** em 3 situações de entradas diferentes.
+
+##### 1. Entrada de Dados Desordenados #####
+
+Nesse primeiro cenário, o comportamento das duas estruturas é praticamente oposto. Na heap, o elemento é sempre adicionado na última posição e, em seguida, é realizado o heapify para manter a propriedade da árvore, com custo de O(log n), correspondente à altura da árvore. Já na priorityqueue, o valor também é inserido no final, mas é executado um *insertion sort* para manter a ordenação da estrutura, tornando a operação mais custosa, ocorrendo em O(n).
+
+Em relação à remoção, a heap remove o elemento e aplica novamente o heapify, mantendo o custo em O(log n). Por outro lado, na priority queue, a remoção ocorre em tempo constante, pois os valores já foram ordenados na inserção; basta retirar o elemento da última posição.
+
+Na busca as estruturas têm complexidade linear com tempo de execução bastante semelhantes nos dados adquiridos pelo estudo.
+
+|           |           |
+|-----------|-----------|
+| ![Graphic](src/main/java/dev/ProjetoEDA/repository/graphs/heap/heap_random_workload_50I25R25S_tempo.png) | ![Graphic](src/main/java/dev/ProjetoEDA/repository/graphs/priorityqueue/priorityqueue_random_workload_50I25R25S_tempo.png) |
+
+##### 2. Entrada de Dados Crescentes #####
+
+No segundo cenário, os gráficos e os tempos de execução mostraram resultados praticamente idênticos entre as duas estruturas. No entanto, o crescimento da entrada de dados beneficiou especialmente a priorityqueue, pois os elementos chegavam ordenados, tornando a inserção quase constante. Na heap, por outro lado, o desempenho permaneceu inalterado, pois ela mantém garantidamente complexidade O(log n) em remoções e percorre linearmente na busca.
+
+|           |           |
+|-----------|-----------|
+| ![Graphic](src/main/java/dev/ProjetoEDA/repository/graphs/heap/heap_crescente_workload_50I25R25S_tempo.png) | ![Graphic](src/main/java/dev/ProjetoEDA/repository/graphs/priorityqueue/priorityqueue_crescente_workload_50I25R25S_tempo.png) |
+
+##### 3. Entrada de Dados Decrescentes #####
+
+No terceiro cenário, o gráfico da heap permanece o mesmo, como já explicado anteriormente. Porém, a priorityqueue sofreu uma grande queda de desempenho, pois o insertion sort agora opera sempre no pior caso, precisando percorrer toda a estrutura até encontrar a posição correta para inserir cada elemento. No cenário 1, a inserção de 10^4 elementos na priorityqueue levava cerca de 2000 ns, agora, o tempo passou para pouco mais de 4000 ns.
+
+|           |           |
+|-----------|-----------|
+| ![Graphic](src/main/java/dev/ProjetoEDA/repository/graphs/heap/heap_decrescente_workload_50I25R25S_tempo.png) | ![Graphic](src/main/java/dev/ProjetoEDA/repository/graphs/priorityqueue/priorityqueue_decrescente_workload_50I25R25S_tempo.png) |
 
 ---
