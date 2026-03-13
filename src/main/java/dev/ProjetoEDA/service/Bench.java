@@ -789,7 +789,7 @@ public abstract class Bench {
         System.gc();
         System.runFinalization();
         try {
-            Thread.sleep(50);
+            Thread.sleep(5);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
