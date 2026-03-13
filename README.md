@@ -92,6 +92,7 @@ Cada arquivo de entrada contém **10⁶ elementos inteiros positivos**, podendo 
 Devido a limitações de hardware, foram utilizados:
 
 - **10³ elementos** para experimentos com **BST**
+- **10⁴ elementos** para experimentos com **Heap**
 - **10⁵ elementos** para as demais estruturas
 
 ## Escalas de teste
@@ -396,4 +397,10 @@ No terceiro cenário, o gráfico da heap permanece o mesmo, como já explicado a
 |-----------|-----------|
 | ![Graphic](src/main/java/dev/ProjetoEDA/repository/graphs/heap/heap_decrescente_workload_50I25R25S_tempo.png) | ![Graphic](src/main/java/dev/ProjetoEDA/repository/graphs/priorityqueue/priorityqueue_decrescente_workload_50I25R25S_tempo.png) |
 
+---
+
+### Observações sobre análises e limitações ###
+
+Inevitavelmente, algumas limitações afetaram a análise mais profunda e precisa do comportamento das estruturas estudadas neste projeto. Durante as medições do tempo de execução, a verificação do uso de memória gerou ruídos e alterações nos dados adquiridos, que podem ou não ser perceptíveis nos gráficos e nos valores medidos. Alguns gráficos apresentaram ruídos evidentes, porém esses foram considerados irrelevantes para a análise principal e puderam ser ignorados. No entanto, a limitação no tamanho das entradas, principalmente nas estruturas heap e BST, impacta diretamente as conclusões vinda a partir das medições. A amplitude insuficiente dos dados dificulta a análise de determinadas características, como, por exemplo, a variação de valores brutos do tempo de execução em diferentes cenários e estruturas.
+ 
 ---
