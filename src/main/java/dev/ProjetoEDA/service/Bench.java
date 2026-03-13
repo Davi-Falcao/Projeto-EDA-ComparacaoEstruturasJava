@@ -57,19 +57,9 @@ public abstract class Bench {
 
     protected static final String[] ORDENS = { "random", "crescente", "decrescente" };
 
-    protected static final Operacao[] OPERACOES_ISOLADAS = {
-        Operacao.ADD,
-        Operacao.SEARCH,
-        Operacao.REMOVE
-    };
+    protected static final Operacao[] OPERACOES_ISOLADAS = {Operacao.ADD, Operacao.SEARCH, Operacao.REMOVE};
 
-    protected static final CasoMisto[] CASOS_MISTOS = {
-        CasoMisto.C100I0R0S,
-        CasoMisto.C75I25R0S,
-        CasoMisto.C50I25R25S,
-        CasoMisto.C50I0R50S,
-        CasoMisto.C50I50R0S
-    };
+    protected static final CasoMisto[] CASOS_MISTOS = { CasoMisto.C100I0R0S, CasoMisto.C75I25R0S, CasoMisto.C50I25R25S, CasoMisto.C50I0R50S,CasoMisto.C50I50R0S};
 
     protected static List<Integer> random;
     protected static List<Integer> crescente;
@@ -203,13 +193,7 @@ public abstract class Bench {
 
                 long memoriaEstrutura = medirMemoriaEstrutura(dados, n);
 
-                gravarLinhaResultado(
-                        writer,
-                        n,
-                        operacao.name(),
-                        calcularMediana(tempos),
-                        memoriaEstrutura
-                );
+                gravarLinhaResultado(writer, n, operacao.name(), calcularMediana(tempos), memoriaEstrutura);
             }
         }
     }
@@ -466,13 +450,7 @@ public abstract class Bench {
      * @param rodada índice da rodada
      * @return tempos acumulados e quantidades executadas por operação
      */
-    protected ResultadoWorkload executarRoundWorkload(
-            List<Integer> dados,
-            int n,
-            CasoMisto caso,
-            String ordem,
-            int rodada
-    ) {
+    protected ResultadoWorkload executarRoundWorkload(List<Integer> dados, int n, CasoMisto caso, String ordem, int rodada) {
         ResultadoWorkload resultado = new ResultadoWorkload();
 
         Estrutura estrutura = criarEstrutura();
@@ -480,12 +458,7 @@ public abstract class Bench {
 
         int addExecutados = 0;
 
-        Random randomizador = new Random(
-                31L * n
-                        + 17L * rodada
-                        + 13L * Math.abs(ordem.hashCode())
-                        + 97L * caso.ordinal()
-        );
+        Random randomizador = new Random(31L * n + 17L * rodada + 13L * Math.abs(ordem.hashCode()) + 97L * caso.ordinal());
 
         for (int passo = 0; passo < n; passo++) {
             Operacao operacao = descobrirOperacaoWorkload(caso, passo, n);
@@ -705,9 +678,8 @@ public abstract class Bench {
      */
     protected String gerarPathArquivoSaidaOperacao(String ordem, Operacao operacao) {
         String nomeEstrutura = getNomeEstrutura().toLowerCase();
-        return "src/main/java/dev/ProjetoEDA/repository/results/"
-                + nomeEstrutura + "/result_"
-                + nomeEstrutura + "_" + ordem + "_" + operacao.name().toLowerCase() + ".csv";
+        String pathSaida = nomeEstrutura + "/result_" + nomeEstrutura + "_" + ordem + "_" + operacao.name().toLowerCase() + ".csv";
+        return "src/main/java/dev/ProjetoEDA/repository/results/" + pathSaida;
     }
 
     /**
@@ -719,9 +691,8 @@ public abstract class Bench {
      */
     protected String gerarPathArquivoSaidaWorkload(String ordem, CasoMisto caso) {
         String nomeEstrutura = getNomeEstrutura().toLowerCase();
-        return "src/main/java/dev/ProjetoEDA/repository/results/"
-                + nomeEstrutura + "/result_"
-                + nomeEstrutura + "_" + ordem + "_workload_" + caso.getNome() + ".csv";
+        String pathSaida = nomeEstrutura + "/result_" + nomeEstrutura + "_" + ordem + "_workload_" + caso.getNome() + ".csv";
+        return "src/main/java/dev/ProjetoEDA/repository/results/" + pathSaida;
     }
 
     /**
@@ -757,19 +728,8 @@ public abstract class Bench {
      * @param memoriaUso memória registrada
      * @throws IOException se ocorrer erro na escrita
      */
-    protected void gravarLinhaResultado(
-            BufferedWriter writer,
-            int tamanhoEntrada,
-            String operacao,
-            long tempoMedio,
-            long memoriaUso
-    ) throws IOException {
-        writer.write(
-                tamanhoEntrada + "," +
-                operacao + "," +
-                tempoMedio + "," +
-                memoriaUso + "\n"
-        );
+    protected void gravarLinhaResultado(BufferedWriter writer, int tamanhoEntrada, String operacao, long tempoMedio, long memoriaUso) throws IOException {
+        writer.write(tamanhoEntrada + "," + operacao + "," + tempoMedio + "," + memoriaUso + "\n");
     }
 
     /**
@@ -784,10 +744,12 @@ public abstract class Bench {
         if (dadosCarregados) {
             return;
         }
+         
+        String pathBase = "src/main/java/dev/ProjetoEDA/repository/entry/";
 
-        random = carregarInteiros("src/main/java/dev/ProjetoEDA/repository/entry/entradaRandomUnica.csv");
-        crescente = carregarInteiros("src/main/java/dev/ProjetoEDA/repository/entry/entradaCrescenteUnica.csv");
-        decrescente = carregarInteiros("src/main/java/dev/ProjetoEDA/repository/entry/entradaDecrescenteUnica.csv");
+        random = carregarInteiros(pathBase + "entradaRandomUnica.csv");
+        crescente = carregarInteiros(pathBase + "entradaCrescenteUnica.csv");
+        decrescente = carregarInteiros(pathBase + "entradaDecrescenteUnica.csv");
 
         dadosCarregados = true;
     }
@@ -801,8 +763,7 @@ public abstract class Bench {
      */
     protected List<Integer> carregarInteiros(String path) throws IOException {
         try (Stream<String> linhas = Files.lines(Paths.get(path))) {
-            return linhas
-                    .map(String::trim)
+            return linhas.map(String::trim)
                     .filter(linha -> !linha.isEmpty())
                     .filter(linha -> !linha.matches(".*[a-zA-Z].*"))
                     .map(linha -> linha.split(",")[0].trim())
