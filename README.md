@@ -256,3 +256,41 @@ As classes concretas apenas definem qual estrutura será utilizada.
 4. O tamanho máximo da entrada é configurado
 5. O método `run()` executa o protocolo experimental
 6. Os resultados são registrados em arquivos CSV
+
+---
+
+## ArrayList X LinkedList ##
+
+### Uso de Memória ###
+
+Por ser uma estrutura baseada em *array*, o aumento do uso de memória em uma *arraylist* depende da implementação do método resize(). Nesse estudo o redimensionamento sempre cria um array com o dobro da capacidade do anterior (sendo a capacidade inicial de 3000 posições). Assim, observa-se que o consumo de memória cresce geometricamente com razão 2 a partir do consumo inicial de 12040 bytes. Como o resize() é sempre chamado durante inserções quando a arraylist excede sua capacidade, então, mesmo quando a quantidade de elementos não dobra o espaço da memória já estará sendo consumido sem abrigar o total de valores permitidos. Devido a essa natureza do redimensionamento o gráfico possui uma curva de crescimento exponencial.
+
+Já uma *linkedlist* é uma estrutura baseada em nós , em que cada nó possui um ponteiro para o próximo elemento e, no caso da implementação utilizada aqui, também para o elemento anterior, sendo assim uma *double linkedlist*. Cada elemento inserido cria um novo objeto na memória com seus ponteiros, o que faz o consumo de memória subir na operação de inserção. O gráfico evidencia um comportamento onde a memória cresce proporcionalmente ao aumento da entrada. Ou seja, existe um crescimento linear do uso de memória nessa estrutura.
+
+Em termos de memória, embora linkedlist apresente um crescimento linear, seu consumo de memória aumenta a cada inserção. Diferentemente, a arraylist só exige mais memória quando não existirem mais posições disponíveis na capacidade atual. Isso fica evidente nos gráficos, para uma entrada de aproxidamente 20000 elementos, a arraylist consome em torno de 10^5 bytes, enquanto a linkedlist 5 * 10^5 bytes. Assim, pode-se concluir que essa diferença tende a continuar significativa junto do aumento da entrada, apenas em cenários muito restritos (entrada até 500 elementos) a linkedlist se mostra econômica com a memória.
+
+|           |           |
+|-----------|-----------|
+| ![Graphic](src/main/java/dev/ProjetoEDA/repository/graphs/arraylist/arraylist_random_workload_100I0R0S_memoria.png) | ![Graphic](src/main/java/dev/ProjetoEDA/repository/graphs/linkedlist/linkedlist_random_workload_100I0R0S_memoria.png) |
+
+### Tempo de execução ###
+
+Em relação ao tempo de execução, os gráficos e dados mostram que a arraylist apresenta desempenho superior, sendo consideravelmente mais rápida que a linkedlist em realizar buscas e remoções. Embora ambas tenham complexidade O(n) nessas operações, linkedlist leva mais tempo para executá-las. Isso se deve ao fato de que, na linkedlist, os nós estão espalhados em diferentes lugares da memória, aumentando o tempo necessário para percorrer a lista. Por outro lado, na arraylist os elementos estão guardados no mesmo espaço da memória, favorecendo encontrar elementos mais rapidamente. 
+
+Os resultados do estudo mostram a arraylist sendo até 13 vezes mais eficiente no tempo de execução que a linkedlist.
+
+|           |           |
+|-----------|-----------|
+| ![Graphic](src/main/java/dev/ProjetoEDA/repository/graphs/arraylist/arraylist_referencia_random_tempo.png) | ![Graphic](src/main/java/dev/ProjetoEDA/repository/graphs/linkedlist/linkedlist_referencia_random_tempo.png) |
+
+Algo interessante que pode ser percebido nos dados do estudo e que ficaram mais evidentes no caso **50I25R25S**, é a diferença entre o tempo de execução da busca e da remoção. Nos gráficos abaixo nota-se que essas operações levam praticamente o mesmo tempo para serem executadas na linkedlist, tendo uma variação pouco significativa. Entretanto, na arraylist com o crescimento da entrada essa disparidade se mostrou um tanto quanto relevante.
+
+Esse resultado acontece por causa da forma que a arraylist remove seus elementos. Para evitar uma posição vazia entre dois elementos após a remoção, a arraylist desloca todos os elementos que estão à direita uma posição para a esquerda. Esse processo tem complexidade linear, o que tende a ser custoso quando a entrada é grande, principalmente se o elemento removido estiver no início. Na linkedlist, apenas os ponteiros são atualizados, mudanças de referência são constantes e quase não afetam o desempenho.
+
+Na maior entrada testada (10^5 elementos) a remoção levou quase o dobro do tempo (8801 ns) que a busca (4714 ns) na arraylist.
+
+|           |           |
+|-----------|-----------|
+| ![Graphic](src/main/java/dev/ProjetoEDA/repository/graphs/arraylist/arraylist_random_workload_50I25R25S_tempo.png) | ![Graphic](src/main/java/dev/ProjetoEDA/repository/graphs/linkedlist/linkedlist_random_workload_50I25R25S_tempo.png) |
+
+---
