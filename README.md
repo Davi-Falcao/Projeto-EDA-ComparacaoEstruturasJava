@@ -414,3 +414,16 @@ Na comparação entre árvores binárias de pesquisa, a BST é uma ótima escolh
 Em síntese muitas varíaveis devem ser analisadas antes de definir a melhor estrutura para cada cenário e os estudos de casos facilitam nessa decisão.
 
 ---
+
+### Referências ### 
+
+XAVIER, Luiz Gustavo Coutinho; MENDIZABAL, Odorico M. Análise de Desempenho de Estruturas de Dados Concorrentes Implementadas na Linguagem Java. In: Escola Regional de Alto Desempenho da Região Sul (ERAD-RS). SBC, 2019.Acesso em: 14 fev. 2026.
+
+CORMEN, Thomas H.; LEISERSON, Charles E.; RIVEST, Ronald L.; STEIN, Clifford; Algoritmos: teoria e prática. 3. ed. Rio de Janeiro: Campus, 2002. Acesso em: 14 fev. 2026.
+
+João Arthur Brunet, 2019. Estruturas de Dados e Algoritmos, Computação @ UFCG, <http://joaoarthurbm.github.io/eda>. Acesso em: 14 fev. 2026.
+
+ORACLE. Java Platform, Standard Edition – API Specification. Oracle, 2023. Disponível em: https://docs.oracle.com/javase/8/docs/api/. Acesso em: 14 fev. 2026.
+
+STACKIFY. How to Monitor CPU, Memory, and Disk Usage in Java. Stackify. Disponível em: https://stackify.com/how-to-monitor-cpu-memory-and-disk-usage-in-java/
+. Acesso em: 13 mar. 2026.
