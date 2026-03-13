@@ -294,3 +294,62 @@ Na maior entrada testada (10^5 elementos) a remoção levou quase o dobro do tem
 | ![Graphic](src/main/java/dev/ProjetoEDA/repository/graphs/arraylist/arraylist_random_workload_50I25R25S_tempo.png) | ![Graphic](src/main/java/dev/ProjetoEDA/repository/graphs/linkedlist/linkedlist_random_workload_50I25R25S_tempo.png) |
 
 ---
+
+## BST X AVL X PV ##
+
+### Uso de Memória ###
+
+Árvores Rubro-Negra (PV) e AVL são versões balanceadas da Árvore de Busca Binária (BST). Por esse motivo, carregam a mesma lógica básica de nós, possuindo três ponteiros (parent, left e right). Logo, compartilhando dessa organização para armazenar elementos, a memória consumida pelas três estruturas segue a mesma curva de crescimento linear, proporcional ao aumento do número de nós na árvore. Pela característica de nós encadeados, armazenando diversos ponteiros para objetos em variados lugares na memória, o uso dela é consideravelmente elevado em comparação às estruturas baseadas em array.
+
+Abaixo os gráficos provam esse crescimento parelho entre as estruturas.
+
+![Graphic](src/main/java/dev/ProjetoEDA/repository/graphs/bst/bst_random_workload_100I0R0S_memoria.png)
+
+|           |           |
+|-----------|-----------|
+| ![Graphic](src/main/java/dev/ProjetoEDA/repository/graphs/avl/avl_random_workload_100I0R0S_memoria.png) | ![Graphic](src/main/java/dev/ProjetoEDA/repository/graphs/pv/pv_random_workload_100I0R0S_memoria.png) |
+
+---
+
+### Tempo de Execução ###
+
+Distintamente do consumo de memória, o tempo de execução difere significativamente tanto dentro de uma mesma árvore quanto entre estruturas diferentes. Fatores como carga de operações e a ordem de inserção dos dados influenciam diretamente a eficiência das árvores. Com isso, dois cenários principais foram analisados a fim de permitir uma compreensão abrangente do comportamento e desempenho dessas estruturas no estudo, evitando repetições de dados e conclusões.
+
+#### 1. Entrada de Dados Desordenados ####
+
+Comparando cenários em que metade das operações são de remoção com aqueles em que metade são de busca, para ter-se uma bom ângulo de análise bem distribuído, observa-se que a remoção é quase duas vezes mais lenta que a busca. Esse comportamento é esperado, pois a remoção envolve a atualização de ponteiros na árvore. Esse processo se torna custoso quando o nó removido possui dois filhos, porque é necessário localizar seu predecessor ou sucessor para garantir a propriedade da BST.
+
+|           |           |
+|-----------|-----------|
+| ![Graphic](src/main/java/dev/ProjetoEDA/repository/graphs/bst/bst_random_workload_50I50R0S_tempo.png) | ![Graphic](src/main/java/dev/ProjetoEDA/repository/graphs/bst/bst_random_workload_50I0R50S_tempo.png) |
+
+No mesmo cenário, em árvores AVL e PV, a remoção é consideravelmente mais lenta devido aos balanceamentos feito na estrutura após a operação, que atualiza diversas referências dependendo da posição do elemento na árvore. Nesse caso, a BST se mostrou no geral mais eficiente que as versões balanceadas.
+
+|           |           |
+|-----------|-----------|
+| ![Graphic](src/main/java/dev/ProjetoEDA/repository/graphs/avl/avl_random_workload_50I50R0S_tempo.png) | ![Graphic](src/main/java/dev/ProjetoEDA/repository/graphs/avl/avl_random_workload_50I0R50S_tempo.png) |
+
+|           |           |
+|-----------|-----------|
+| ![Graphic](src/main/java/dev/ProjetoEDA/repository/graphs/pv/pv_random_workload_50I50R0S_tempo.png) | ![Graphic](src/main/java/dev/ProjetoEDA/repository/graphs/pv/pv_random_workload_50I0R50S_tempo.png) |
+
+
+#### 2. Entrada de Dados Ordenados ####
+
+Agora nessa situação onde os dados inseridos são crescentes, a árvore irá pender para o lado direito afetando muito negativamente a eficiência da BST em todas as operações.
+
+|           |           |
+|-----------|-----------|
+| ![Graphic](src/main/java/dev/ProjetoEDA/repository/graphs/bst/bst_crescente_workload_50I50R0S_tempo.png) | ![Graphic](src/main/java/dev/ProjetoEDA/repository/graphs/bst/bst_crescente_workload_50I0R50S_tempo.png) |
+
+As estrutura AVL e PV não apresentaram mudanças de comportamento graças ao auto-balanceamento, garantindo que a busca e inserção continuem O(log n). Assim, no cenário em que dados são inseridos em ordens crescente ou decrescente, as versões balanceadas de árvore garantem bastante eficiência e desempenho para se trabalhar.
+
+|           |           |
+|-----------|-----------|
+| ![Graphic](src/main/java/dev/ProjetoEDA/repository/graphs/avl/avl_crescente_workload_50I50R0S_tempo.png) | ![Graphic](src/main/java/dev/ProjetoEDA/repository/graphs/avl/avl_crescente_workload_50I0R50S_tempo.png) |
+
+|           |           |
+|-----------|-----------|
+| ![Graphic](src/main/java/dev/ProjetoEDA/repository/graphs/pv/pv_crescente_workload_50I50R0S_tempo.png) | ![Graphic](src/main/java/dev/ProjetoEDA/repository/graphs/pv/pv_crescente_workload_50I0R50S_tempo.png) |
+
+---
